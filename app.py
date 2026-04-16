@@ -9,7 +9,8 @@ from functools import wraps # Ye zaroori hai login guard ke liye
 app = Flask(__name__)
 
 # --- CONFIGURATION ---
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///moonlight.db'
+basedir = os.path.abspath(os.path.dirname(__file__))
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'instance', 'moonlight.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = 'moonlight_exclusive_2026'
 
