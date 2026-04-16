@@ -1,3 +1,7 @@
-self.addEventListener('fetch', function(event) {
-    // Ye file browser ko batati hai ki app offline bhi chal sakti hai
+self.addEventListener('install', (e) => {
+  self.skipWaiting();
+});
+
+self.addEventListener('fetch', (e) => {
+  e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
 });
