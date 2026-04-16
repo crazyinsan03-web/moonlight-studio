@@ -99,6 +99,8 @@ def player(id):
 
 if __name__ == '__main__':
     with app.app_context():
+        # Instance folder banane ke liye
+        if not os.path.exists('instance'):
+            os.makedirs('instance')
         db.create_all()
-    # host='0.0.0.0' karne se tera laptop server ban jayega pure ghar ke liye
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(debug=True)
