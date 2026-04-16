@@ -4,12 +4,13 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 import cloudinary
 import cloudinary.uploader
 from models import db, Song
-from functools import wraps # Ye zaroori hai login guard ke liye
+from functools import wraps
 
 app = Flask(__name__)
 
 # --- CONFIGURATION ---
 basedir = os.path.abspath(os.path.dirname(__file__))
+# Render ke liye path fix
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'instance', 'moonlight.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = 'moonlight_exclusive_2026'
@@ -27,12 +28,19 @@ cloudinary.config(
   api_secret = "6mnFXvTUglloLODp_OpoGJ0P3Q0" 
 )
 
+# --- DATABASE INITIALIZATION FOR RENDER (MUST FOR FIXING 500 ERROR) ---
+with app.app_context():
+    if not os.path.exists('instance'):
+        os.makedirs('instance')
+    db.create_all()
+    print("✅ Moonlight Database Ready!")
+
 # --- LOGIN GUARD DECORATOR ---
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if not session.get('logged_in'):
-            return redirect(url_for('login')) # Login nahi hai toh login page pe bhejo
+            return redirect(url_for('login'))
         return f(*args, **kwargs)
     return decorated_function
 
@@ -60,12 +68,14 @@ def index():
         songs = Song.query.filter(Song.title.ilike(f'%{search_query}%')).all()
     else:
         songs_list = Song.query.all()
-        random.shuffle(songs_list)
+        # Shuffle tabhi karein jab gaane hon
+        if songs_list:
+            random.shuffle(songs_list)
         songs = songs_list
     return render_template('index.html', songs=songs, search_query=search_query)
 
 @app.route('/upload', methods=['GET', 'POST'])
-@login_required # Ab ye login mangega!
+@login_required
 def upload():
     if request.method == 'POST':
         file = request.files.get('file')
@@ -79,11 +89,10 @@ def upload():
     return render_template('upload.html')
 
 @app.route('/delete/<int:id>')
-@login_required # Sirf admin delete kar payega
+@login_required
 def delete_song(id):
     song = Song.query.get_or_404(id)
     try:
-        # Cloudinary se delete karna
         public_id = "moonlight_mashups/" + song.song_url.split('/')[-1].split('.')[0]
         cloudinary.uploader.destroy(public_id, resource_type="video")
     except:
@@ -98,9 +107,4 @@ def player(id):
     return render_template('player.html', song=song)
 
 if __name__ == '__main__':
-    with app.app_context():
-        # Instance folder banane ke liye
-        if not os.path.exists('instance'):
-            os.makedirs('instance')
-        db.create_all()
     app.run(debug=True)
