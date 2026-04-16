@@ -225,7 +225,11 @@
 </div>
 <script>
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/static/sw.js');
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/static/sw.js')
+        .then(reg => console.log('SW Registered!'))
+        .catch(err => console.log('SW Failed!', err));
+    });
   }
 </script>
 </body>
