@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Moonlight | Premium Mashups</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --neon: #00e5ff;
+            --bg-dark: #050505;
+            --glass: rgba(255, 255, 255, 0.03);
+            --border: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            background: var(--bg-dark);
+            color: white;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            margin: 0;
+            padding-bottom: 100px; /* Space for Bottom Nav */
+            background: radial-gradient(circle at 50% 0%, #1a1a2e 0%, #050505 100%);
+            min-height: 100vh;
+        }
+
+        /* Animated Background Dots */
+        .stars {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1; opacity: 0.3;
+            background-image: radial-gradient(#fff 1px, transparent 1px);
+            background-size: 50px 50px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 550px;
+            margin: 0 auto;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        /* Premium Header */
+        header {
+            padding: 20px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .brand {
+            font-size: 1.8rem;
+            font-weight: 800;
+            letter-spacing: -1.5px;
+            background: linear-gradient(to right, #fff, var(--neon));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Search Bar Upgrade */
+        .search-box {
+            position: relative;
+            margin: 20px 0;
+        }
+
+        .search-box input {
+            width: 100%;
+            background: var(--glass);
+            border: 1px solid var(--border);
+            padding: 18px 25px;
+            border-radius: 20px;
+            color: white;
+            backdrop-filter: blur(10px);
+            font-size: 1rem;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        .search-box input:focus {
+            border-color: var(--neon);
+            box-shadow: 0 0 20px rgba(0, 229, 255, 0.1);
+        }
+
+        /* Categories Scroll */
+        .categories {
+            display: flex;
+            gap: 12px;
+            overflow-x: auto;
+            padding-bottom: 10px;
+            margin-bottom: 25px;
+            scrollbar-width: none; /* Hidden scrollbar */
+        }
+        .categories::-webkit-scrollbar { display: none; }
+        
+        .cat-chip {
+            background: var(--glass);
+            border: 1px solid var(--border);
+            padding: 10px 20px;
+            border-radius: 50px;
+            white-space: nowrap;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #888;
+        }
+        .cat-chip.active { background: var(--neon); color: black; border: none; }
+
+        /* Song Card - Spotify Style */
+        .song-card {
+            display: flex;
+            align-items: center;
+            background: var(--glass);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 15px;
+            margin-bottom: 15px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            backdrop-filter: blur(5px);
+        }
+
+        .song-card:active { transform: scale(0.97); background: rgba(255,255,255,0.06); }
+
+        .album-art {
+            width: 60px; height: 60px;
+            background: linear-gradient(45deg, #111, #333);
+            border-radius: 12px;
+            margin-right: 15px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.5rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .song-info { flex: 1; }
+        .song-info h3 { margin: 0; font-size: 1.05rem; font-weight: 600; letter-spacing: -0.3px; }
+        .song-info p { margin: 4px 0 0; font-size: 0.75rem; color: #666; font-weight: 500; }
+
+        /* Bottom Navigation Bar */
+        .bottom-nav {
+            position: fixed; bottom: 20px; left: 50%;
+            transform: translateX(-50%);
+            width: 90%; max-width: 400px;
+            background: rgba(15, 15, 20, 0.8);
+            backdrop-filter: blur(25px);
+            border: 1px solid var(--border);
+            border-radius: 30px;
+            display: flex; justify-content: space-around;
+            padding: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+            z-index: 1000;
+        }
+
+        .nav-item { color: #555; text-decoration: none; font-size: 0.7rem; font-weight: 700; display: flex; flex-direction: column; align-items: center; gap: 5px; }
+        .nav-item.active { color: var(--neon); }
+        .nav-icon { font-size: 1.2rem; }
+
+    </style>
+</head>
+<body>
+
+<div class="stars"></div>
+
+<div class="container">
+    <header>
+        <div class="brand">Moonlight</div>
+        <div style="font-size: 1.2rem; opacity: 0.6;">🌙</div>
+    </header>
+
+    <div class="search-box">
+        <form action="/" method="GET">
+            <input type="text" name="search" placeholder="Search mashups..." value="{{ search_query if search_query else '' }}">
+        </form>
+    </div>
+
+    <div class="categories">
+        <div class="cat-chip active">All Mixes</div>
+        <div class="cat-chip">Party</div>
+        <div class="cat-chip">Sad</div>
+        <div class="cat-chip">Lo-fi</div>
+        <div class="cat-chip">Old School</div>
+    </div>
+
+   <div id="song-list">
+    {% for song in songs %}
+    <div class="song-card" onclick="window.location.href='/song/{{ song.id }}'">
+        <div class="album-art">🎧</div>
+        <div class="song-info">
+            <h3>{{ song.title }}</h3>
+            <p>MASHUP • MOONLIGHT STUDIO</p>
+        </div>
+        
+        <div style="display: flex; align-items: center;">
+            {% if session.logged_in %}
+                <div class="del-btn" 
+                     onclick="event.stopPropagation(); if(confirm('Bhai, pakka uda du ye mashup?')) window.location.href='/delete/{{ song.id }}'"
+                     style="color: #ff4d4d; font-size: 1.2rem; margin-right: 15px; cursor: pointer; z-index: 100;">
+                     ✕
+                </div>
+            {% endif %}
+            <div style="color: var(--neon); font-size: 0.8rem;">▶</div>
+        </div>
+    </div>
+    {% endfor %} </div> ```
+
+
+
+<div class="bottom-nav">
+    <a href="/" class="nav-item active">
+        <span class="nav-icon">🏠</span>
+        <span>Home</span>
+    </a>
+    <a href="#" class="nav-item" onclick="document.querySelector('input').focus();">
+        <span class="nav-icon">🔍</span>
+        <span>Search</span>
+    </a>
+    <a href="/upload" class="nav-item">
+        <span class="nav-icon">➕</span>
+        <span>Upload</span>
+    </a>
+    <a href="#" class="nav-item">
+        <span class="nav-icon">👤</span>
+        <span>Anish</span>
+    </a>
+</div>
+
+</body>
+</html>

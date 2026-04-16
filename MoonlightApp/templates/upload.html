@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Upload | Moonlight Studio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root { --neon: #00e5ff; --glass: rgba(255, 255, 255, 0.03); }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            background: #020205; color: white; font-family: 'Plus Jakarta Sans', sans-serif;
+            margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center;
+            background: radial-gradient(circle at 50% 0%, #1a1a2e 0%, #020205 100%);
+            padding: 20px;
+        }
+
+        .upload-card {
+            width: 100%; max-width: 450px;
+            background: rgba(255, 255, 255, 0.02);
+            backdrop-filter: blur(40px);
+            border-radius: 40px;
+            padding: 40px 30px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 40px 100px rgba(0,0,0,0.8);
+            text-align: center;
+            animation: slideUp 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        .icon-circle {
+            width: 80px; height: 80px; background: rgba(0, 229, 255, 0.1);
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 25px; font-size: 2rem; border: 1px solid var(--neon);
+            box-shadow: 0 0 20px rgba(0, 229, 255, 0.2);
+        }
+
+        h2 { font-size: 1.8rem; font-weight: 800; margin-bottom: 10px; letter-spacing: -1px; }
+        p { color: #666; font-size: 0.85rem; margin-bottom: 35px; }
+
+        .input-group { margin-bottom: 20px; text-align: left; }
+        label { display: block; font-size: 0.7rem; font-weight: 800; color: var(--neon); letter-spacing: 1.5px; margin-bottom: 10px; text-transform: uppercase; }
+        
+        input[type="text"] {
+            width: 100%; background: var(--glass); border: 1px solid rgba(255,255,255,0.1);
+            padding: 18px; border-radius: 18px; color: white; outline: none; transition: 0.3s;
+        }
+        input[type="text"]:focus { border-color: var(--neon); background: rgba(0,229,255,0.05); }
+
+        .file-drop {
+            width: 100%; border: 2px dashed rgba(255,255,255,0.1);
+            border-radius: 20px; padding: 30px; cursor: pointer; transition: 0.3s;
+            margin-bottom: 30px; display: block;
+        }
+        .file-drop:hover { border-color: var(--neon); background: rgba(255,255,255,0.02); }
+
+        /* 🔥 Submit Button Style Added */
+        .submit-btn {
+            width: 100%; padding: 20px; background: white; color: black;
+            border-radius: 20px; font-weight: 800; font-size: 1rem;
+            cursor: pointer; border: none; transition: 0.3s;
+            box-shadow: 0 10px 20px rgba(255,255,255,0.1);
+            text-transform: uppercase;
+        }
+        .submit-btn:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(0, 229, 255, 0.3); background: var(--neon); }
+
+        #status { display: none; margin-top: 20px; font-size: 0.75rem; color: var(--neon); font-weight: 700; letter-spacing: 2px; }
+
+        .back-home { display: block; margin-top: 25px; color: #444; text-decoration: none; font-size: 0.8rem; font-weight: 600; }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="upload-card">
+        <div class="icon-circle">🎙️</div>
+        <h2>Studio Upload</h2>
+        <p>Your mix will be mastered in Moonlight Cloud</p>
+
+        <form id="uploadForm" method="POST" enctype="multipart/form-data" onsubmit="return showStatus()">
+            <div class="input-group">
+                <label>Mix Title</label>
+                <input type="text" name="title" placeholder="e.g. Mahii Dil Dooba Mashup" required>
+            </div>
+
+            <div class="input-group">
+                <label>Audio File</label>
+                <label class="file-drop">
+                    <span id="fileName" style="color:#555">Click to select MP3/WAV</span>
+                    <input type="file" name="file" accept="audio/*" required style="display:none" 
+                           onchange="document.getElementById('fileName').innerText = this.files[0].name; document.getElementById('fileName').style.color='#fff'">
+                </label>
+            </div>
+
+            <button type="submit" class="submit-btn" id="subBtn">Master & Upload</button>
+            
+            <div id="status">PROCESSING MIX... PLEASE WAIT</div>
+        </form>
+
+        <a href="/" class="back-home">BACK TO STUDIO</a>
+    </div>
+
+    <script>
+        function showStatus() {
+            document.getElementById('subBtn').style.display = 'none';
+            document.getElementById('status').style.display = 'block';
+            return true;
+        }
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>{{ song.title }} | Moonlight Studio </title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root { --neon: #00e5ff; --glass: rgba(255, 255, 255, 0.05); }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            background: #000; color: #fff; font-family: 'Plus Jakarta Sans', sans-serif;
+            margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center;
+            background: radial-gradient(circle at 50% 120%, #0d1b2a 0%, #000 100%);
+            overflow: hidden;
+        }
+
+        .player-wrapper {
+            width: 100%; height: 100vh;
+            max-width: 500px; max-height: 900px;
+            background: rgba(255, 255, 255, 0.02);
+            backdrop-filter: blur(40px);
+            display: flex; flex-direction: column; justify-content: space-between;
+            position: relative; border: 1px solid rgba(255,255,255,0.08);
+            box-shadow: 0 50px 100px rgba(0,0,0,0.8);
+        }
+
+        @media (min-width: 600px) { .player-wrapper { height: 85vh; border-radius: 40px; } }
+
+        .top-bar { width: 100%; padding: 40px 25px 0; display: flex; justify-content: space-between; align-items: center; }
+        .close-btn { font-size: 1.5rem; text-decoration: none; color: #fff; opacity: 0.5; }
+
+        .art-container { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; }
+        .ripple {
+            position: absolute; width: 280px; height: 280px;
+            border: 2px solid var(--neon); border-radius: 50%;
+            opacity: 0; animation: waveRipple 3s infinite linear;
+            animation-play-state: paused;
+        }
+        .album-art { width: 180px; height: 180px; background: #111; border-radius: 50%; z-index: 10; display: flex; align-items: center; justify-content: center; font-size: 4rem; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 0 50px rgba(0, 229, 255, 0.15); }
+
+        .song-meta { text-align: left; width: 85%; margin: 0 auto 10px; }
+        .song-meta h1 { font-size: 1.8rem; margin: 0; font-weight: 800; letter-spacing: -1px; }
+        .song-meta p { color: var(--neon); font-size: 0.8rem; font-weight: 700; margin-top: 8px; letter-spacing: 2px; text-transform: uppercase; }
+
+        /* 🎞️ NEW: Timeline Slider Section */
+        .timeline-container { width: 85%; margin: 0 auto 30px; }
+        .time-slider { -webkit-appearance: none; width: 100%; height: 4px; background: rgba(255,255,255,0.1); border-radius: 10px; outline: none; cursor: pointer; }
+        .time-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; background: var(--neon); border-radius: 50%; box-shadow: 0 0 10px var(--neon); }
+        .time-info { display: flex; justify-content: space-between; margin-top: 8px; font-size: 0.7rem; color: #666; font-weight: 600; }
+
+        /* 🎚️ Luxury Controls Panel */
+        .controls-panel { background: rgba(255,255,255,0.04); padding: 30px 30px 60px; border-radius: 45px 45px 0 0; border-top: 1px solid rgba(255,255,255,0.1); }
+        
+        .vol-wrap { display: flex; align-items: center; gap: 15px; margin-bottom: 30px; opacity: 0.5; }
+        .vol-slider { -webkit-appearance: none; width: 100%; height: 2px; background: rgba(255,255,255,0.1); border-radius: 10px; outline: none; }
+        .vol-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 10px; height: 10px; background: #fff; border-radius: 50%; }
+
+        .main-btns { display: flex; justify-content: space-between; align-items: center; }
+        .play-trigger { width: 75px; height: 75px; background: #fff; color: #000; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; cursor: pointer; transition: 0.2s; }
+        
+        audio { display: none; } /* Hidden native audio, using custom UI */
+
+        @keyframes waveRipple {
+            0% { transform: scale(0.6); opacity: 0; }
+            50% { opacity: 0.4; }
+            100% { transform: scale(1.5); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="player-wrapper">
+        <div class="top-bar">
+            <a href="/" class="close-btn">✕</a>
+            <div style="font-size: 0.65rem; font-weight: 800; color: #444; letter-spacing: 2px;">MOONLIGHT STUDIO  BY ANISH</div>
+            <div style="opacity: 0.2;">⋮</div>
+        </div>
+
+        <div class="art-container">
+            <div class="ripple" id="r1"></div>
+            <div class="ripple" id="r2" style="animation-delay: 1.5s;"></div>
+            <div class="album-art">🎧</div>
+        </div>
+
+        <div class="song-meta">
+            <h1>{{ song.title }}</h1>
+            <p>HQ Mastering • 320kbps</p>
+        </div>
+
+        <div class="timeline-container">
+            <input type="range" id="seek-slider" class="time-slider" value="0" max="100">
+            <div class="time-info">
+                <span id="current-time">0:00</span>
+                <span id="duration">0:00</span>
+            </div>
+        </div>
+
+        <div class="controls-panel">
+            <audio id="audio" src="{{ song.song_url }}" autoplay></audio>
+            
+            <div class="vol-wrap">
+                <span>🔈</span>
+                <input type="range" class="vol-slider" min="0" max="1" step="0.01" value="0.8" oninput="document.getElementById('audio').volume = this.value">
+                <span>🔊</span>
+            </div>
+
+            <div class="main-btns">
+                <div style="font-size: 1.5rem; opacity: 0.2;">⏮</div>
+                <div class="play-trigger" id="pTrigger" onclick="playPause()">II</div>
+                <div style="font-size: 1.5rem; opacity: 0.2;">⏭</div>
+            </div>
+        </div>
+    </div>
+
+<script>
+    const audio = document.getElementById('audio');
+    const pTrigger = document.getElementById('pTrigger');
+    const seekSlider = document.getElementById('seek-slider');
+    const currentTimeText = document.getElementById('current-time');
+    const durationText = document.getElementById('duration');
+    const ripples = [document.getElementById('r1'), document.getElementById('r2')];
+
+    function playPause() {
+        if (audio.paused) audio.play();
+        else audio.pause();
+    }
+
+    // Sync UI with audio state
+    audio.onplay = () => {
+        pTrigger.innerText = 'II';
+        ripples.forEach(r => r.style.animationPlayState = 'running');
+    };
+    audio.onpause = () => {
+        pTrigger.innerText = '▶';
+        ripples.forEach(r => r.style.animationPlayState = 'paused');
+    };
+
+    // Update timeline as song plays
+    audio.ontimeupdate = () => {
+        const percentage = (audio.currentTime / audio.duration) * 100;
+        seekSlider.value = percentage || 0;
+        
+        // Update Time Texts
+        currentTimeText.innerText = formatTime(audio.currentTime);
+        if(!isNaN(audio.duration)) durationText.innerText = formatTime(audio.duration);
+    };
+
+    // Seek song on slider change
+    seekSlider.oninput = () => {
+        const seekTo = audio.duration * (seekSlider.value / 100);
+        audio.currentTime = seekTo;
+    };
+
+    function formatTime(seconds) {
+        let min = Math.floor(seconds / 60);
+        let sec = Math.floor(seconds % 60);
+        if (sec < 10) sec = `0${sec}`;
+        return `${min}:${sec}`;
+    }
+</script>
+
+</body>
+</html>
