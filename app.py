@@ -5,9 +5,10 @@ from flask import Flask, render_template, request, redirect, url_for, jsonify
 
 app = Flask(__name__)
 
-# TERA NEON CONNECTION STRING (Ekdum secure)
-DB_URL = "postgresql://neondb_owner:npg_M7CR8fwVjeNY@ep-blue-union-an1h5dmf-pooler.c-6.us-east-1.aws.neon.tech/neondb?sslmode=require"
+import os
 
+# TERA NEON CONNECTION (Ab ye Render ke Environment se URL uthayega)
+DB_URL = os.environ.get('DATABASE_URL')
 def get_db_connection():
     conn = psycopg2.connect(DB_URL)
     return conn
