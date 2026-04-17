@@ -3,187 +3,192 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>{{ song.title }} | Moonlight Studio </title>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;600;800&display=swap" rel="stylesheet">
-    <style>
-        :root { --neon: #00e5ff; --glass: rgba(255, 255, 255, 0.05); }
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-
-        body {
-            background: #000; color: #fff; font-family: 'Plus Jakarta Sans', sans-serif;
-            margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center;
-            background: radial-gradient(circle at 50% 120%, #0d1b2a 0%, #000 100%);
-            overflow: hidden;
-        }
-
-        .player-wrapper {
-            width: 100%; height: 100vh;
-            max-width: 500px; max-height: 900px;
-            background: rgba(255, 255, 255, 0.02);
-            backdrop-filter: blur(40px);
-            display: flex; flex-direction: column; justify-content: space-between;
-            position: relative; border: 1px solid rgba(255,255,255,0.08);
-            box-shadow: 0 50px 100px rgba(0,0,0,0.8);
-        }
-
-        @media (min-width: 600px) { .player-wrapper { height: 85vh; border-radius: 40px; } }
-
-        .top-bar { width: 100%; padding: 40px 25px 0; display: flex; justify-content: space-between; align-items: center; }
-        .close-btn { font-size: 1.5rem; text-decoration: none; color: #fff; opacity: 0.5; }
-
-        .art-container { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; }
-        .ripple {
-            position: absolute; width: 280px; height: 280px;
-            border: 2px solid var(--neon); border-radius: 50%;
-            opacity: 0; animation: waveRipple 3s infinite linear;
-            animation-play-state: paused;
-        }
-        .album-art { 
-            width: 180px; height: 180px; background: #111; border-radius: 50%; z-index: 10; 
-            display: flex; align-items: center; justify-content: center; overflow: hidden;
-            border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 0 50px rgba(0, 229, 255, 0.15); 
-        }
-        .album-art img { width: 100%; height: 100%; object-fit: cover; }
-
-        .song-meta { text-align: left; width: 85%; margin: 0 auto 10px; }
-        .song-meta h1 { font-size: 1.6rem; margin: 0; font-weight: 800; letter-spacing: -1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .song-meta p { color: var(--neon); font-size: 0.75rem; font-weight: 700; margin-top: 8px; letter-spacing: 2px; text-transform: uppercase; }
-
-        .timeline-container { width: 85%; margin: 0 auto 30px; }
-        .time-slider { -webkit-appearance: none; width: 100%; height: 4px; background: rgba(255,255,255,0.1); border-radius: 10px; outline: none; cursor: pointer; }
-        .time-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; background: var(--neon); border-radius: 50%; box-shadow: 0 0 10px var(--neon); }
-        .time-info { display: flex; justify-content: space-between; margin-top: 8px; font-size: 0.7rem; color: #666; font-weight: 600; }
-
-        .controls-panel { background: rgba(255,255,255,0.04); padding: 30px 30px 60px; border-radius: 45px 45px 0 0; border-top: 1px solid rgba(255,255,255,0.1); }
-        
-        .main-btns { display: flex; justify-content: space-between; align-items: center; }
-        .play-trigger { width: 75px; height: 75px; background: #fff; color: #000; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; cursor: pointer; transition: 0.2s; }
-        
-        /* Hidden YouTube Iframe */
-        #yt-player { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
-
-        @keyframes waveRipple {
-            0% { transform: scale(0.6); opacity: 0; }
-            50% { opacity: 0.4; }
-            100% { transform: scale(1.5); opacity: 0; }
-        }
-    </style>
+    <title>{{ song[1] }} | Moonlight</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
-<body>
+<body class="player-body">
 
-    <div class="player-wrapper">
-        <div class="top-bar">
-            <a href="/" class="close-btn">✕</a>
-            <div style="font-size: 0.65rem; font-weight: 800; color: #555; letter-spacing: 2px;">MOONLIGHT STUDIO BY ANISH</div>
-            <div style="opacity: 0.2;">⋮</div>
+    <div class="player-header">
+        <button class="back-btn" onclick="window.location.href='/'">
+            <i class="material-icons">expand_more</i>
+        </button>
+        <div class="playing-from">
+            <p class="small-text">PLAYING FROM CATEGORY</p>
+            <p class="cat-name">{{ song[3] }}</p>
         </div>
+        <button class="more-options"><i class="material-icons">more_vert</i></button>
+    </div>
 
-        <div class="art-container">
-            <div class="ripple" id="r1"></div>
-            <div class="ripple" id="r2" style="animation-delay: 1.5s;"></div>
-            <div class="album-art">
-                <img src="{{ song.thumbnail }}" alt="art">
+    <div class="player-main-content">
+        <div class="visualizer-container">
+            <div class="playing-waves" id="waveContainer">
+                <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
             </div>
         </div>
 
         <div class="song-meta">
-            <h1>{{ song.title }}</h1>
-            <p>MOONLIGHT • High Quality</p>
+            <div class="title-wrap">
+                <h2 class="player-title">{{ song[1] }}</h2>
+                <p class="artist-name">Moonlight Original</p>
+            </div>
+            <button class="heart-btn" id="likeBtn" onclick="sendLike({{ song[0] }})">
+                <i class="material-icons" id="heartIcon">favorite_border</i>
+            </button>
         </div>
 
-        <div id="yt-player"></div>
-
-        <div class="timeline-container">
-            <input type="range" id="seek-slider" class="time-slider" value="0" max="100">
-            <div class="time-info">
-                <span id="current-time">0:00</span>
-                <span id="duration">0:00</span>
+        <div class="progress-container">
+            <div class="time-bar" id="progressBar" style="cursor: pointer;">
+                <div class="progress-fill" id="seekProgress"></div>
+            </div>
+            <div class="time-stamps">
+                <span id="currentTime">0:00</span>
+                <span id="totalDuration">0:00</span>
             </div>
         </div>
 
-        <div class="controls-panel">
-            <div class="main-btns">
-                <div style="font-size: 1.5rem; opacity: 0.2;">⏮</div>
-                <div class="play-trigger" id="pTrigger" onclick="togglePlay()">II</div>
-                <div style="font-size: 1.5rem; opacity: 0.2;">⏭</div>
-            </div>
+        <div class="main-controls">
+            <button class="ctrl-btn"><i class="material-icons">shuffle</i></button>
+            <button class="ctrl-btn" onclick="window.history.back()"><i class="material-icons">skip_previous</i></button>
+            
+            <button class="play-pause-circle" onclick="togglePlay()">
+                <i class="material-icons" id="playIcon">pause</i>
+            </button>
+
+            <button class="ctrl-btn" onclick="goToNext()"><i class="material-icons">skip_next</i></button>
+            <button class="ctrl-btn"><i class="material-icons">repeat</i></button>
         </div>
     </div>
 
-    <script src="https://www.youtube.com/iframe_api"></script>
-    <script>
-        let player;
-        const pTrigger = document.getElementById('pTrigger');
-        const seekSlider = document.getElementById('seek-slider');
-        const currentTimeText = document.getElementById('current-time');
-        const durationText = document.getElementById('duration');
-        const ripples = [document.getElementById('r1'), document.getElementById('r2')];
+    <div id="player"></div>
 
-        // YouTube API setup
-        function onYouTubeIframeAPIReady() {
-            player = new YT.Player('yt-player', {
-                height: '0',
-                width: '0',
-                videoId: '{{ song.video_id }}',
-                playerVars: {
-                    'autoplay': 1,
-                    'controls': 0,
-                    'modestbranding': 1,
-                    'rel': 0
-                },
-                events: {
-                    'onReady': onPlayerReady,
-                    'onStateChange': onPlayerStateChange
-                }
-            });
-        }
+   <script>
+    // 1. YouTube API Load karo
+    var tag = document.createElement('script');
+    tag.src = "https://www.youtube.com/iframe_api";
+    var firstScriptTag = document.getElementsByTagName('script')[0];
+    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
-        function onPlayerReady(event) {
-            updateTimer();
-        }
-
-        function onPlayerStateChange(event) {
-            if (event.data == YT.PlayerState.PLAYING) {
-                pTrigger.innerText = 'II';
-                ripples.forEach(r => r.style.animationPlayState = 'running');
-            } else {
-                pTrigger.innerText = '▶';
-                ripples.forEach(r => r.style.animationPlayState = 'paused');
+    var player;
+    
+    // 2. Player Setup (Speed Hacks ke saath)
+    function onYouTubeIframeAPIReady() {
+        player = new YT.Player('player', {
+            height: '0',
+            width: '0',
+            videoId: '{{ song[2] }}',
+            playerVars: { 
+                'autoplay': 1, 
+                'controls': 0, 
+                'modestbranding': 1, 
+                'playsinline': 1,
+                'rel': 0,
+                'vq': 'tiny' // <--- Sabse low quality taaki buffering na ho
+            },
+            events: {
+                'onReady': onPlayerReady,
+                'onStateChange': onPlayerStateChange
             }
-        }
+        });
+    }
 
-        function togglePlay() {
-            const state = player.getPlayerState();
-            if (state == YT.PlayerState.PLAYING) player.pauseVideo();
-            else player.playVideo();
-        }
+    // 3. Player Ready hone par quality lock karo
+    function onPlayerReady(event) {
+        event.target.setPlaybackQuality('small'); 
+        updateProgress();
+    }
 
-        function updateTimer() {
-            setInterval(() => {
-                if (player && player.getCurrentTime) {
-                    const current = player.getCurrentTime();
-                    const total = player.getDuration();
-                    
-                    const percentage = (current / total) * 100;
-                    seekSlider.value = percentage || 0;
-                    
-                    currentTimeText.innerText = formatTime(current);
-                    durationText.innerText = formatTime(total);
+    // 4. Like Function (Neon Glow + Database Entry)
+    function sendLike(songId) {
+        let btn = document.getElementById('likeBtn');
+        let icon = document.getElementById('heartIcon');
+        
+        if (!btn.classList.contains('active')) {
+            btn.classList.add('active');
+            icon.innerText = "favorite"; 
+            
+            fetch(`/like/${songId}`, { method: 'POST' })
+            .then(response => response.json())
+            .then(data => {
+                if(data.success) console.log("Moonlight: Song Liked! 🌙");
+            });
+        } else {
+            btn.classList.remove('active');
+            icon.innerText = "favorite_border";
+        }
+    }
+
+    // 5. Play/Pause Logic (Waves control ke saath)
+    function togglePlay() {
+        let icon = document.getElementById('playIcon');
+        let waves = document.getElementById('waveContainer');
+        
+        if (player.getPlayerState() == 1) { // Playing
+            player.pauseVideo();
+            icon.innerText = "play_arrow";
+            waves.classList.add('paused-waves');
+        } else {
+            player.playVideo();
+            icon.innerText = "pause";
+            waves.classList.remove('paused-waves');
+        }
+    }
+
+    // 6. Progress Bar (Seeking/Age-piche karna)
+    document.getElementById('progressBar').addEventListener('click', function(e) {
+        if (player && player.getDuration) {
+            let rect = this.getBoundingClientRect();
+            let x = e.clientX - rect.left; 
+            let width = rect.width; 
+            let perc = x / width; 
+            let duration = player.getDuration();
+            player.seekTo(duration * perc, true); 
+        }
+    });
+
+    function updateProgress() {
+        setInterval(() => {
+            if (player && player.getCurrentTime) {
+                let curr = player.getCurrentTime();
+                let dur = player.getDuration();
+                if (dur > 0) {
+                    let perc = (curr / dur) * 100;
+                    document.getElementById('seekProgress').style.width = perc + "%";
+                    document.getElementById('currentTime').innerText = formatTime(curr);
+                    document.getElementById('totalDuration').innerText = formatTime(dur);
                 }
-            }, 1000);
-        }
+            }
+        }, 500);
+    }
 
-        seekSlider.oninput = () => {
-            const seekTo = player.getDuration() * (seekSlider.value / 100);
-            player.seekTo(seekTo, true);
-        };
+    function formatTime(time) {
+        let min = Math.floor(time / 60);
+        let sec = Math.floor(time % 60);
+        return min + ":" + (sec < 10 ? '0' : '') + sec;
+    }
 
-        function formatTime(seconds) {
-            let min = Math.floor(seconds / 60);
-            let sec = Math.floor(seconds % 60);
-            if (sec < 10) sec = `0${sec}`;
-            return `${min}:${sec}`;
+    function goToNext() {
+        {% if next_id %}
+            window.location.href = "/player/{{ next_id }}";
+        {% else %}
+            window.location.href = "/";
+        {% endif %}
+    }
+
+    function onPlayerStateChange(event) {
+        let icon = document.getElementById('playIcon');
+        let waves = document.getElementById('waveContainer');
+        
+        if (event.data == YT.PlayerState.PLAYING) {
+            icon.innerText = "pause";
+            waves.classList.remove('paused-waves');
+        } else if (event.data == YT.PlayerState.PAUSED) {
+            icon.innerText = "play_arrow";
+            waves.classList.add('paused-waves');
+        } else if (event.data == YT.PlayerState.ENDED) {
+            goToNext();
         }
-    </script>
+    }
+</script>
 </body>
 </html>
