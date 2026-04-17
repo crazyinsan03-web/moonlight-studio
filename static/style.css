@@ -35,35 +35,30 @@ body {
 
 /* --- MAIN PAGE: Header & Search --- */
 .spotify-header { 
-    padding: 30px 15px 15px; /* Spacing thodi kam ki mobile ke liye */
-    background: linear-gradient(rgba(0,0,0,0.6) 0%, transparent 100%);
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-    /* YE ADD KAR */
-    display: flex;
-    flex-direction: column;
-    gap: 15px; 
-
-
+    padding: 60px 20px 20px !important; /* Top padding badhai */
+    background: linear-gradient(rgba(0,0,0,0.8) 0%, rgba(18,18,18,1) 100%) !important;
+    position: relative !important; /* Sticky hata kar test kar */
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 20px !important; /* Elements ke beech pakka gap */
+    width: 100% !important;
 }
 
 .greeting { 
-    font-size: 24px; 
-    font-weight: 700; 
-    margin-bottom: 20px;
-    letter-spacing: -0.5px;
+    font-size: 28px !important; 
+    font-weight: 800 !important; 
+    margin: 0 !important;
 }
 
 .search-pill {
-    width: 100%; /* Isse bar screen ke bahar nahi jayegi */
     background: #242424 !important;
-    padding: 12px 18px;
-    border-radius: 50px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-
+    padding: 14px 18px !important;
+    border-radius: 12px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    width: 100% !important;
+    position: relative !important;
 }
 
 .search-pill:focus-within {
@@ -107,28 +102,18 @@ body {
 
 /* --- MAIN PAGE: Grid & Cards --- */
 .spotify-grid {
-    display: grid; 
-    grid-template-columns: repeat(2, 1fr); 
-    gap: 12px; 
-    padding: 12px; 
-    /* YE TEEN LINES SCREEN KE BAHAR JANE SE ROKEGI */
+    display: grid !important; 
+    grid-template-columns: repeat(2, 1fr) !important; 
+    gap: 12px !important; 
+    padding: 15px !important; 
     width: 100% !important;
-    max-width: 100vw !important;
-    overflow-x: hidden !important;
-    box-sizing: border-box;
-    margin: 0 auto;
+    box-sizing: border-box !important;
 }
 
 .sp-card {
-    background: var(--sp-card-bg); 
-    padding: 12px; 
-    border-radius: 10px;
-    /* ISSE CARD GRID KE DABBE MEIN FIT RAHEGA */
-    width: auto !important;
-    min-width: 0 !important; 
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
+    width: 100% !important;
+    min-width: 0 !important; /* Overflow rokega */
+    box-sizing: border-box !important;
 }
 .sp-title { 
     font-size: 14px; 
