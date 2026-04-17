@@ -14,11 +14,13 @@ app.config['SECRET_KEY'] = 'moonlight_exclusive_2026'
 
 db.init_app(app)
 
-# app.py mein ye hissa dhoondo aur badlo
+# --- DATABASE RESET & SYNC ---
 with app.app_context():
-    db.drop_all()
+    # Pehle purani table udayega (sirf ek baar reset ke liye)
+    # Jab site chal jaye, toh line 21 ko delete kar dena
+    db.drop_all() 
     db.create_all()
-    print("🚀 Database Reset Successful!"))
+    print("🚀 Database Reset Successful! Nayi table ban gayi hai.")
 
 # YouTube Link se ID nikalne ka function
 def get_video_id(url):
@@ -29,15 +31,13 @@ def get_video_id(url):
 @app.route('/')
 def index():
     search_query = request.args.get('search')
-    
     if search_query:
-        # Search filter
+        # User ke search ke hisaab se saved gaane dhoondo
         songs = Song.query.filter(Song.title.ilike(f'%{search_query}%')).all()
     else:
-        # Normal Dashboard
+        # Dashboard par saare gaane shuffle karke dikhao
         songs = Song.query.all()
         random.shuffle(songs)
-        
     return render_template('index.html', songs=songs, search_query=search_query)
 
 @app.route('/upload', methods=['GET', 'POST'])
@@ -48,7 +48,7 @@ def upload():
         
         if v_id:
             try:
-                # YouTube se automatic Title fetch karna (No API Key Required)
+                # YouTube se automatic Title fetch karna
                 response = requests.get(f"https://noembed.com/embed?url=https://www.youtube.com/watch?v={v_id}")
                 data = response.json()
                 title = data.get('title', 'Moonlight Studio Mix')
@@ -71,14 +71,6 @@ def upload():
 def player(id):
     song = Song.query.get_or_404(id)
     return render_template('player.html', song=song)
-
-# Admin delete route
-@app.route('/delete/<int:id>')
-def delete_song(id):
-    song = Song.query.get_or_404(id)
-    db.session.delete(song)
-    db.session.commit()
-    return redirect(url_for('index'))
 
 if __name__ == '__main__':
     app.run(debug=True)
