@@ -108,33 +108,35 @@ body {
 /* --- MAIN PAGE: Grid & Cards --- */
 .spotify-grid {
     display: grid; 
-    grid-template-columns: repeat(2, 1fr); /* 2 Barabar columns */
-    gap: 12px; 
-    padding: 15px; /* Side margin set ki */
+    grid-template-columns: repeat(2, 1fr); 
+    gap: 15px; 
+    padding: 15px; /* Charo taraf barabar spacing */
     width: 100%;
+    margin: 0 auto; /* Screen ke center mein rakhega */
 }
 
 .sp-card {
     background: var(--sp-card-bg); 
-    padding: 10px; 
-    border-radius: 10px;
-    transition: all 0.3s ease;
-    animation: fadeInUp 0.6s ease forwards;
-    position: relative;
-    border: 1px solid rgba(255,255,255,0.02);
-    /* Ye do lines zaroor add karna */
-    display: flex;
-    flex-direction: column;
-    overflow: hidden; /* Content ko card ke andar hi rakhega */
+    padding: 12px; 
+    border-radius: 12px;
+    /* ... tera baaki code ... */
+    height: 100%; /* Saare cards ek barabar height ke honge */
+}
+.sp-title { 
+    font-size: 14px; 
+    font-weight: 700; 
+    margin: 12px 0 2px; 
+    display: block; /* Poori width lega */
+    overflow: hidden; 
+    text-overflow: ellipsis; 
+    white-space: nowrap; 
 }
 
-.sp-title { 
-    font-size: 13px; /* Mobile ke liye perfect size */
-    font-weight: 700; 
-    margin: 10px 0 2px; 
-    overflow: hidden; 
-    text-overflow: ellipsis; /* Bada naam hone par '...' dikhayega */
-    white-space: nowrap; 
+.sp-meta-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 8px; /* Heart icon aur text ke beech thoda gap */
 }
 
 .sp-card:active { 
@@ -652,9 +654,8 @@ body {
 .search-pill:focus-within {
     border-color: var(--sp-green);
     box-shadow: 0 0 15px rgba(29, 185, 84, 0.2);
-    transform: scale(1.02);
+    transform: scale(1.01); /* Halki si zoom animation */
 }
-
 /* 4. Card Magic: Glassmorphism Grid */
 .sp-card {
     background: rgba(255, 255, 255, 0.03) !important;
