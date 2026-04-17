@@ -18,7 +18,7 @@ db.init_app(app)
 with app.app_context():
     # Pehle purani table udayega (sirf ek baar reset ke liye)
     # Jab site chal jaye, toh line 21 ko delete kar dena
-    db.drop_all() 
+    
     db.create_all()
     print("🚀 Database Reset Successful! Nayi table ban gayi hai.")
 
