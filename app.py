@@ -1,105 +1,57 @@
 import os
 import random
+import requests
 from flask import Flask, render_template, request, redirect, url_for, session, flash
-import cloudinary
-import cloudinary.uploader
 from models import db, Song
-from functools import wraps
 
 app = Flask(__name__)
 
-# --- CONFIGURATION ---
-basedir = os.path.abspath(os.path.dirname(__file__))
-# Render ke liye path fix
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'instance', 'moonlight.db')
+# --- CONFIGURATION (NEON LINK SET) ---
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://neondb_owner:npg_tSE5owdI4LzK@ep-quiet-wave-an83dt9u.c-6.us-east-1.aws.neon.tech/neondb?sslmode=require'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = 'moonlight_exclusive_2026'
 
 db.init_app(app)
 
-# ADMIN CREDENTIALS
-ADMIN_USER = "anish"
-ADMIN_PASS = "moonlight2026"
-
-# CLOUDINARY CONFIG
-cloudinary.config( 
-  cloud_name = "dy3phvpmd", 
-  api_key = "337268783782577", 
-  api_secret = "6mnFXvTUglloLODp_OpoGJ0P3Q0" 
-)
-
-# --- DATABASE INITIALIZATION FOR RENDER (MUST FOR FIXING 500 ERROR) ---
+# Neon ke liye tables banana
 with app.app_context():
-    if not os.path.exists('instance'):
-        os.makedirs('instance')
     db.create_all()
-    print("✅ Moonlight Database Ready!")
-
-# --- LOGIN GUARD DECORATOR ---
-def login_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if not session.get('logged_in'):
-            return redirect(url_for('login'))
-        return f(*args, **kwargs)
-    return decorated_function
-
-# --- ROUTES ---
-
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if request.method == 'POST':
-        if request.form['username'] == ADMIN_USER and request.form['password'] == ADMIN_PASS:
-            session['logged_in'] = True
-            return redirect(url_for('index'))
-        else:
-            flash("Galat Password!")
-    return render_template('login.html')
-
-@app.route('/logout')
-def logout():
-    session.pop('logged_in', None)
-    return redirect(url_for('index'))
 
 @app.route('/')
 def index():
     search_query = request.args.get('search')
+    
     if search_query:
-        songs = Song.query.filter(Song.title.ilike(f'%{search_query}%')).all()
-    else:
-        songs_list = Song.query.all()
-        # Shuffle tabhi karein jab gaane hon
-        if songs_list:
-            random.shuffle(songs_list)
-        songs = songs_list
+        # Step 1: Pehle check karo kya database mein ye gaana hai?
+        song_in_db = Song.query.filter(Song.title.ilike(f'%{search_query}%')).first()
+        
+        if not song_in_db:
+            # Step 2: Agar nahi hai, toh JioSaavn API se fetch karo
+            try:
+                response = requests.get(f"https://saavn.dev/api/search/songs?query={search_query}")
+                if response.status_code == 200:
+                    data = response.json()
+                    results = data.get('data', {}).get('results', [])
+                    
+                    if results:
+                        top = results[0] 
+                        title = top['name']
+                        url = top['downloadUrl'][-1]['url'] # Best quality
+                        img = top['image'][-1]['url'] # Best image
+                        
+                        # Step 3: AUTO-SAVE to Neon
+                        new_song = Song(title=title, song_url=url, thumbnail=img)
+                        db.session.add(new_song)
+                        db.session.commit()
+            except Exception as e:
+                print(f"Search Error: {e}")
+
+    # Dashboard par saare saved gaane dikhao
+    songs = Song.query.all()
+    if songs:
+        random.shuffle(songs)
+    
     return render_template('index.html', songs=songs, search_query=search_query)
-
-@app.route('/upload', methods=['GET', 'POST'])
-@login_required
-def upload():
-    if request.method == 'POST':
-        file = request.files.get('file')
-        title = request.form.get('title')
-        if file and title:
-            upload_result = cloudinary.uploader.upload(file, resource_type="video", folder="moonlight_mashups")
-            new_song = Song(title=title, song_url=upload_result['secure_url'])
-            db.session.add(new_song)
-            db.session.commit()
-            return redirect(url_for('index'))
-    return render_template('upload.html')
-
-@app.route('/delete/<int:id>')
-@login_required
-def delete_song(id):
-    song = Song.query.get_or_404(id)
-    try:
-        public_id = "moonlight_mashups/" + song.song_url.split('/')[-1].split('.')[0]
-        cloudinary.uploader.destroy(public_id, resource_type="video")
-    except:
-        pass
-    db.session.delete(song)
-    db.session.commit()
-    return redirect(url_for('index'))
 
 @app.route('/song/<int:id>')
 def player(id):
