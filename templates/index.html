@@ -1,193 +1,94 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="manifest" href="/static/manifest.json">
-    <meta name="theme-color" content="#00e5ff">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Moonlight | Premium Mashups</title>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    
-    <style>
-        :root {
-            --neon: #00e5ff;
-            --bg-dark: #050505;
-            --glass: rgba(255, 255, 255, 0.03);
-            --border: rgba(255, 255, 255, 0.1);
-            --danger: #ff4757;
-        }
-
-        body {
-            background: var(--bg-dark);
-            color: white;
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            margin: 0;
-            padding-bottom: 120px;
-            background: radial-gradient(circle at 50% 0%, #1a1a2e 0%, #050505 100%);
-            min-height: 100vh;
-        }
-
-        .stars {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: -1; opacity: 0.3;
-            background-image: radial-gradient(#fff 1px, transparent 1px);
-            background-size: 50px 50px;
-        }
-
-        .container {
-            width: 100%; max-width: 550px; margin: 0 auto; padding: 20px; box-sizing: border-box;
-        }
-
-        header { padding: 20px 0; display: flex; justify-content: space-between; align-items: center; }
-
-        .brand {
-            font-size: 1.8rem; font-weight: 800; letter-spacing: -1.5px;
-            background: linear-gradient(to right, #fff, var(--neon));
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-        }
-
-        .search-box input {
-            width: 100%; background: var(--glass); border: 1px solid var(--border);
-            padding: 18px 25px; border-radius: 20px; color: white;
-            backdrop-filter: blur(10px); font-size: 1rem; outline: none; transition: 0.3s; box-sizing: border-box;
-        }
-
-        .search-box input:focus { border-color: var(--neon); box-shadow: 0 0 20px rgba(0, 229, 255, 0.1); }
-
-        .song-card {
-            background: var(--glass); border: 1px solid var(--border);
-            border-radius: 24px; padding: 16px; margin-bottom: 15px;
-            backdrop-filter: blur(5px);
-        }
-
-        .main-content { display: flex; align-items: center; cursor: pointer; }
-
-        .album-art {
-            width: 65px; height: 65px; background: #111; border-radius: 15px;
-            margin-right: 15px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-        }
-        .album-art img { width: 100%; height: 100%; object-fit: cover; }
-
-        .song-info { flex: 1; }
-        .song-info h3 { margin: 0; font-size: 1rem; font-weight: 600; line-height: 1.3; }
-        .song-info p { margin: 4px 0 0; font-size: 0.7rem; color: #777; letter-spacing: 1px; }
-
-        /* Actions Bar (Like & Delete) */
-        .actions-bar {
-            display: flex; justify-content: space-between; align-items: center;
-            margin-top: 15px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.05);
-        }
-
-        .like-btn {
-            background: rgba(255, 71, 87, 0.1); border: none; color: #ff4757;
-            padding: 8px 15px; border-radius: 12px; font-weight: 700;
-            display: flex; align-items: center; gap: 6px; cursor: pointer; transition: 0.2s;
-        }
-        .like-btn:active { transform: scale(0.9); }
-
-        .admin-area { display: flex; gap: 8px; align-items: center; }
-        .admin-input {
-            width: 70px; background: #111; border: 1px solid #333;
-            border-radius: 8px; color: #fff; padding: 6px; font-size: 0.7rem; outline: none;
-        }
-        .delete-btn {
-            background: var(--danger); color: white; border: none;
-            padding: 6px 12px; border-radius: 8px; cursor: pointer; font-size: 0.8rem;
-        }
-
-        .bottom-nav {
-            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
-            width: 90%; max-width: 400px; background: rgba(10, 10, 15, 0.9);
-            backdrop-filter: blur(20px); border: 1px solid var(--border);
-            border-radius: 30px; display: flex; justify-content: space-around; padding: 12px; z-index: 1000;
-        }
-        .nav-item { color: #666; text-decoration: none; font-size: 0.7rem; font-weight: 700; display: flex; flex-direction: column; align-items: center; gap: 4px; }
-        .nav-item.active { color: var(--neon); }
-    </style>
+    <title>Moonlight | Spotify Premium</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
 <body>
 
-<div class="stars"></div>
-
-<div class="container">
-    <header>
-        <div class="brand">Moonlight</div>
-        <div style="color: var(--neon); font-size: 1.2rem;">✨</div>
-    </header>
-
-    <div class="search-box">
-        <form action="/" method="GET">
-            <input type="text" name="search" placeholder="Search vibes..." value="{{ search_query if search_query else '' }}">
-        </form>
+    <div class="spotify-header">
+        <h2 class="greeting">Good evening</h2>
+        <div class="search-pill">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="searchInput" placeholder="What do you want to listen to?" onkeyup="filterSongs()">
+        </div>
     </div>
 
-    <div id="song-list">
+    <div class="filter-chips">
+        <span class="chip active">Music</span>
+        <span class="chip">Mashups</span>
+        <span class="chip">Lofi</span>
+    </div>
+
+    <div class="spotify-grid" id="songsGrid">
         {% for song in songs %}
-        <div class="song-card">
-            <div class="main-content" onclick="window.location.href='/song/{{ song.id }}'">
-                <div class="album-art">
-                    {% if song.thumbnail %}
-                        <img src="{{ song.thumbnail }}" alt="art">
-                    {% else %}
-                        <div style="display:flex; height:100%; align-items:center; justify-content:center;">🎧</div>
-                    {% endif %}
+        <div class="sp-card-wrapper" style="display: block;">
+            <a href="/player/{{ song[0] }}" style="text-decoration: none; color: inherit;">
+                <div class="sp-card">
+                    <div class="sp-thumb-box">
+                        <img src="https://img.youtube.com/vi/{{ song[2] }}/mqdefault.jpg" class="sp-img">
+                        <div class="sp-play-btn">
+                            <span class="play-arrow">▶</span>
+                        </div>
+                    </div>
+                  <div class="sp-info">
+    <p class="sp-title">{{ song[1] }}</p>
+    <div class="sp-meta-row" style="display: flex; justify-content: space-between; align-items: center;">
+        <p class="sp-artist">Moonlight Original • {{ song[3] }}</p>
+        
+        <div class="sp-likes-badge" style="color: var(--sp-green); font-size: 12px; font-weight: bold; display: flex; align-items: center; gap: 4px;">
+            <i class="material-icons" style="font-size: 14px;">favorite</i>
+            <span>{{ song[4] if song[4] else 0 }}</span>
+        </div>
+    </div>
+</div>
                 </div>
-                <div class="song-info">
-                    <h3>{{ song.title }}</h3>
-                    <p>EXCLUSIVE MASHUP</p>
-                </div>
-                <div style="color: var(--neon); font-size: 1.2rem;">
-                    <i class="fa-solid fa-circle-play"></i>
-                </div>
-            </div>
-
-            <div class="actions-bar">
-                <button class="like-btn" onclick="likeSong({{ song.id }})">
-                    <i class="fa-solid fa-heart"></i>
-                    <span id="likes-{{ song.id }}">{{ song.likes if song.likes else 0 }}</span>
-                </button>
-
-                <form action="/delete/{{ song.id }}" method="POST" class="admin-area" onsubmit="return confirm('Pakka uda du?')">
-                    <input type="password" name="admin_password" placeholder="Pass" class="admin-input" required>
-                    <button type="submit" class="delete-btn">
-                        <i class="fa-solid fa-trash-can"></i>
-                    </button>
-                </form>
-            </div>
+            </a>
         </div>
         {% endfor %}
     </div>
-</div>
 
-<div class="bottom-nav">
-    <a href="/" class="nav-item active"><i class="fa-solid fa-house"></i><span>Home</span></a>
-    <a href="/upload" class="nav-item"><i class="fa-solid fa-plus"></i><span>Upload</span></a>
-    <a href="#" class="nav-item"><i class="fa-solid fa-user"></i><span>Anish</span></a>
-</div>
+    <script>
+        function filterSongs() {
+            let inputField = document.getElementById('searchInput');
+            let inputVal = inputField.value; // Real value for Secret Code
+            let filter = inputVal.toLowerCase();
+            let songWrappers = document.getElementsByClassName('sp-card-wrapper');
 
-<script>
-    // Like function without page refresh
-    function likeSong(songId) {
-        fetch(`/like/${songId}`, { method: 'POST' })
-        .then(response => response.json())
-        .then(data => {
-            if(data.likes !== undefined) {
-                const countSpan = document.getElementById(`likes-${songId}`);
-                countSpan.innerText = data.likes;
-                countSpan.parentElement.style.transform = "scale(1.2)";
-                setTimeout(() => countSpan.parentElement.style.transform = "scale(1)", 200);
+            // --- SECRET ADMIN DOOR ---
+            if (inputVal === "MOON") {
+                window.location.href = "/admin";
+                return;
             }
-        })
-        .catch(err => console.log("Error liking song"));
-    }
 
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('/static/sw.js');
+            // Normal Search Logic
+            for (let i = 0; i < songWrappers.length; i++) {
+                let title = songWrappers[i].querySelector('.sp-title').innerText.toLowerCase();
+                let category = songWrappers[i].querySelector('.sp-artist').innerText.toLowerCase();
+                
+                if (title.includes(filter) || category.includes(filter)) {
+                    songWrappers[i].style.display = "block";
+                } else {
+                    songWrappers[i].style.display = "none";
+                }
+            }
+        }
+
+        // Filter chips logic (Basic UI highlight)
+        const chips = document.querySelectorAll('.chip');
+        chips.forEach(chip => {
+            chip.addEventListener('click', () => {
+                chips.forEach(c => c.classList.remove('active'));
+                chip.classList.add('active');
+                
+                // Chip se bhi search filter trigger karo
+                document.getElementById('searchInput').value = chip.innerText === 'Music' ? '' : chip.innerText;
+                filterSongs();
+            });
         });
-    }
-</script>
-
+    </script>
 </body>
 </html>
