@@ -6,32 +6,35 @@ from models import db, Song
 
 app = Flask(__name__)
 
-# --- CONFIGURATION (NEON LINK SET) ---
+# --- CONNECTION STRING CHECK KARO ---
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://neondb_owner:npg_tSE5owdI4LzK@ep-quiet-wave-an83dt9u.c-6.us-east-1.aws.neon.tech/neondb?sslmode=require'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = 'moonlight_exclusive_2026'
 
 db.init_app(app)
 
-# Neon ke liye tables verified/created
 with app.app_context():
     db.create_all()
+    print("🚀 SYSTEM START: Database tables verified!")
 
 @app.route('/')
 def index():
     search_query = request.args.get('search')
     highlighted_song = None
     
+    # YE LINE LOGS MEIN DIKHNI CHAHIYE
+    print(f"👉 LOG: Index page loaded. Search Query: {search_query}")
+    
     if search_query:
-        print(f"DEBUG: Searching for '{search_query}'")
-        # 1. Database mein check karein
+        print(f"🔍 LOG: Searching for '{search_query}' in DB...")
         highlighted_song = Song.query.filter(Song.title.ilike(f'%{search_query}%')).first()
         
-        # 2. Agar DB mein nahi mila, toh Saavn API se fetch karein
         if not highlighted_song:
+            print(f"📡 LOG: Not in DB. Calling Saavn API for '{search_query}'...")
             try:
                 api_url = f"https://saavn.dev/api/search/songs?query={search_query}"
                 response = requests.get(api_url, timeout=10)
+                print(f"📡 LOG: API Status Code: {response.status_code}")
                 
                 if response.status_code == 200:
                     data = response.json()
@@ -39,7 +42,7 @@ def index():
                     
                     if results:
                         top = results[0]
-                        # Naya gaana object (Saavn se)
+                        print(f"✅ LOG: Song Found! Saving '{top['name']}' to Neon...")
                         highlighted_song = Song(
                             title=top['name'], 
                             song_url=top['downloadUrl'][-1]['url'], 
@@ -47,27 +50,22 @@ def index():
                         )
                         db.session.add(highlighted_song)
                         db.session.commit()
-                        db.session.remove() # Connection fresh rakhein
-                        print(f"DEBUG: '{top['name']}' saved to Neon!")
-                        
-                        # ZAROORI: Refresh karein taaki dashboard update ho jaye
+                        print("💾 LOG: Successfully saved to Neon DB!")
+                        # Refresh to show data
                         return redirect(url_for('index', search=search_query))
                     else:
-                        print("DEBUG: API returned no results.")
+                        print("❌ LOG: API returned no results.")
             except Exception as e:
-                db.session.rollback() # Error pe database rollback karein
-                print(f"DEBUG ERROR: {str(e)}")
+                db.session.rollback()
+                print(f"⚠️ LOG ERROR: {str(e)}")
 
-    # Dashboard logic: Saare gaane uthao
+    # Saare gaane uthao dashboard ke liye
     all_songs = Song.query.all()
-    
     if highlighted_song:
-        # Search result ko sabse upar dikhao
         others = [s for s in all_songs if s.id != highlighted_song.id]
         random.shuffle(others)
         songs = [highlighted_song] + others
     else:
-        # Normal dashboard
         songs = all_songs
         random.shuffle(songs)
     
@@ -77,16 +75,6 @@ def index():
 def player(id):
     song = Song.query.get_or_404(id)
     return render_template('player.html', song=song)
-
-# Admin delete route (Saavn gaano ke liye bhi kaam karega)
-@app.route('/delete/<int:id>')
-def delete_song(id):
-    if not session.get('logged_in'):
-        return redirect(url_for('login'))
-    song = Song.query.get_or_404(id)
-    db.session.delete(song)
-    db.session.commit()
-    return redirect(url_for('index'))
 
 if __name__ == '__main__':
     app.run(debug=True)
