@@ -1,20 +1,28 @@
-/* --- PART 1: LINE 1 TO 350 (UPDATED & FIXED) --- */
-
 :root {
     --sp-green: #1DB954;
     --sp-black: #121212;
     --sp-light-grey: #282828;
     --sp-text-grey: #b3b3b3;
     --sp-card-bg: #181818;
-    --neon-glow: 0 0 20px rgba(29, 185, 84, 0.5);
 }
 
-/* Base Reset */
+/* 1. Base Setup & Animations */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
     -webkit-tap-highlight-color: transparent;
+}
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes greenGlow {
+    0% { box-shadow: 0 8px 16px rgba(29, 185, 84, 0.3); }
+    50% { box-shadow: 0 8px 25px rgba(29, 185, 84, 0.6); }
+    100% { box-shadow: 0 8px 16px rgba(29, 185, 84, 0.3); }
 }
 
 body {
@@ -23,52 +31,44 @@ body {
     color: white;
     font-family: 'Circular Std', 'Segoe UI', Roboto, sans-serif;
     min-height: 100vh;
-    overflow-x: hidden;
 }
 
-/* HEADER & SEARCH FIX (No more overlapping) */
+/* --- MAIN PAGE: Header & Search --- */
 .spotify-header { 
-    padding: 40px 20px 15px; 
-    background: rgba(18, 18, 18, 0.9);
-    backdrop-filter: blur(25px);
-    -webkit-backdrop-filter: blur(25px);
+    padding: 50px 20px 10px; 
+    background: linear-gradient(rgba(0,0,0,0.4) 0%, transparent 100%);
+    /* YE WALI LINES ADD KAR DE */
+    display: flex;
+    flex-direction: column;
+    gap: 15px; /* Isse Greeting aur Search ke beech space ban jayega */
     position: sticky;
     top: 0;
     z-index: 1000;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-    display: flex;
-    flex-direction: column;
-    gap: 15px; /* Space between Greeting and Search */
+
 }
 
 .greeting { 
-    font-size: 26px; 
-    font-weight: 800; 
-    letter-spacing: -0.8px;
-    text-shadow: 0 4px 10px rgba(0,0,0,0.3);
-    margin: 0;
-}
-
-.search-container { 
-    width: 100%; 
-    position: relative;
+    font-size: 24px; 
+    font-weight: 700; 
+    margin-bottom: 20px;
+    letter-spacing: -0.5px;
 }
 
 .search-pill {
     background: #242424;
     padding: 14px 18px;
-    border-radius: 12px;
+    border-radius: 50px;
     display: flex;
     align-items: center;
     gap: 12px;
-    transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
-    border: 1px solid rgba(255,255,255,0.05);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid transparent;
 }
 
 .search-pill:focus-within {
-    background: #2a2a2a;
-    border-color: var(--sp-green);
-    box-shadow: 0 0 20px rgba(29, 185, 84, 0.15);
+    background: #333;
+    border-color: rgba(255,255,255,0.1);
+    transform: translateY(-2px);
 }
 
 .search-pill input {
@@ -77,95 +77,135 @@ body {
     color: white; 
     width: 100%; 
     outline: none;
-    font-size: 16px;
+    font-weight: 500;
 }
 
-/* Category Chips */
+/* --- MAIN PAGE: Filter Chips --- */
 .filter-chips { 
     display: flex; 
     gap: 10px; 
-    padding: 10px 0; 
+    padding: 15px 20px; 
     overflow-x: auto;
     scrollbar-width: none;
 }
-.filter-chips::-webkit-scrollbar { display: none; }
 
 .chip { 
     background: #2a2a2a; 
-    padding: 8px 20px; 
-    border-radius: 25px; 
+    padding: 8px 18px; 
+    border-radius: 20px; 
     font-size: 13px; 
-    font-weight: 700;
+    font-weight: 600;
+    transition: 0.2s;
     white-space: nowrap;
-    border: 1px solid rgba(255,255,255,0.05);
 }
+
 .chip.active { 
     background: var(--sp-green); 
     color: black; 
 }
 
-/* Grid & Cards System */
+/* --- MAIN PAGE: Grid & Cards --- */
 .spotify-grid {
     display: grid; 
+    /* '1fr 1fr' ki jagah ye use kar, isse width auto-adjust hogi */
     grid-template-columns: repeat(2, 1fr); 
-    gap: 15px; 
-    padding: 20px 16px 140px;
+    gap: 12px; /* Gap thoda kam kiya taaki mobile par fit aaye */
+    padding: 12px; /* Side ki spacing */
+    padding-bottom: 140px;
+    width: 100%; /* Screen ke bahar jaane se rokega */
 }
 
 .sp-card {
-    background: rgba(255, 255, 255, 0.03); 
-    padding: 12px; 
-    border-radius: 15px;
-    transition: 0.3s;
-    border: 1px solid rgba(255,255,255,0.05);
+    background: var(--sp-card-bg); 
+    padding: 10px; 
+    border-radius: 10px;
+    transition: all 0.3s ease;
+    animation: fadeInUp 0.6s ease forwards;
     position: relative;
-    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.02);
+    /* Ye do lines zaroor add karna */
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* Content ko card ke andar hi rakhega */
 }
 
-.sp-card:active { transform: scale(0.95); }
+.sp-title { 
+    font-size: 13px; /* Mobile ke liye perfect size */
+    font-weight: 700; 
+    margin: 10px 0 2px; 
+    overflow: hidden; 
+    text-overflow: ellipsis; /* Bada naam hone par '...' dikhayega */
+    white-space: nowrap; 
+}
+
+.sp-card:active { 
+    background: #333; 
+    transform: scale(0.95); 
+    box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+}
+
+.sp-thumb-box { 
+    position: relative; 
+    border-radius: 6px; 
+    overflow: hidden; 
+    box-shadow: 0 12px 24px rgba(0,0,0,0.5); 
+}
 
 .sp-img { 
     width: 100%; 
     aspect-ratio: 1; 
     object-fit: cover; 
-    border-radius: 10px; 
+}
+
+.sp-play-btn {
+    position: absolute; 
+    bottom: 10px; 
+    right: 10px;
+    background: var(--sp-green); 
+    width: 44px; 
+    height: 44px;
+    border-radius: 50%; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center;
+    opacity: 0; 
+    transform: translateY(10px); 
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.sp-card:active .sp-play-btn { 
+    opacity: 1; 
+    transform: translateY(0);
+    animation: greenGlow 1.5s infinite;
+}
+
+.play-arrow { 
+    color: black; 
+    font-size: 16px; 
+    margin-left: 3px;
 }
 
 .sp-title { 
     font-size: 14px; 
     font-weight: 700; 
-    margin-top: 10px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    margin: 12px 0 4px; 
+    overflow: hidden; 
+    text-overflow: ellipsis; 
+    white-space: nowrap; 
 }
 
-.sp-likes-badge {
-    background: rgba(29, 185, 84, 0.1);
-    padding: 2px 8px;
-    border-radius: 10px;
-    color: var(--sp-green);
-    font-size: 11px;
-    font-weight: 800;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    margin-top: 5px;
+.sp-artist { 
+    font-size: 12px; 
+    color: var(--sp-text-grey); 
 }
 
-/* --- (END OF UPDATED SECTION - 350 LINES APPROX) --- */
-
-
-/* --- PART 2: LINE 351 TO 710 (PLAYER UI UPDATED) --- */
-
+/* --- PLAYER PAGE: Layout --- */
 .player-body {
-    background: radial-gradient(circle at top, #333 0%, #121212 100%) !important;
-    animation: backgroundBreath 8s infinite;
+    background: linear-gradient(to bottom, #535353 0%, #121212 100%) !important;
     height: 100vh;
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    padding: 0; /* Mobile padding fixed */
 }
 
 .player-header {
@@ -173,106 +213,78 @@ body {
     justify-content: space-between;
     align-items: center;
     padding: 20px;
-    z-index: 10;
 }
 
-/* Visualizer Container - Iska height fix kiya taaki overlap na ho */
-.visualizer-container {
+.back-btn { background: none; border: none; color: white; cursor: pointer; }
+
+.playing-from { text-align: center; }
+.small-text { font-size: 10px; color: var(--sp-text-grey); letter-spacing: 1px; }
+.cat-name { font-size: 12px; font-weight: 700; }
+
+.player-main-content {
+    padding: 0 30px;
     flex-grow: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(255, 255, 255, 0.03);
-    margin: 10px 20px;
-    border-radius: 30px;
-    backdrop-filter: blur(15px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    box-shadow: inset 0 0 30px rgba(0,0,0,0.5);
-    max-height: 40vh; /* Mobile screen ke hisab se height limit */
 }
 
-.playing-waves {
-    display: flex;
-    align-items: flex-end;
-    gap: 8px;
-    height: 80px; /* Waves size optimized */
+.album-art-container {
+    margin: 20px 0 40px;
+    width: 100%;
 }
 
-.playing-waves span {
-    width: 8px;
-    background: linear-gradient(to top, var(--sp-green), #8affae);
-    border-radius: 15px;
-    animation: wave-anim 1.2s ease-in-out infinite;
-    box-shadow: 0 0 20px var(--sp-green);
-}
-
-/* Song Info Styling */
-.song-info-area {
-    padding: 0 25px;
-    margin-bottom: 20px;
+.full-album-art {
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+    border-radius: 12px;
+    box-shadow: 0 30px 60px rgba(0,0,0,0.5);
 }
 
 .player-title {
     font-size: 24px;
     font-weight: 800;
     margin-bottom: 5px;
-    letter-spacing: -0.5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-.player-artist {
-    color: var(--sp-text-grey);
-    font-size: 16px;
-}
-
-/* Progress Bar & Timing */
-.progress-box {
-    padding: 0 25px;
-    margin-bottom: 25px;
-}
-
-.time-bar {
-    width: 100%;
-    height: 6px;
-    background: rgba(255,255,255,0.1);
-    border-radius: 10px;
-    position: relative;
-    cursor: pointer;
-}
-
-.progress-fill {
-    height: 100%;
-    background: linear-gradient(90deg, var(--sp-green), #8affae);
-    width: 0%;
-    border-radius: 10px;
-    position: relative;
-    box-shadow: 0 0 15px var(--sp-green);
-}
-
-.progress-fill::after {
-    content: '';
-    position: absolute;
-    right: -5px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 14px;
-    height: 14px;
-    background: white;
-    border-radius: 50%;
-    box-shadow: 0 0 15px #fff;
-}
-
-/* Main Controls Box - Glassmorphism fixed */
-.main-controls {
-    background: rgba(255, 255, 255, 0.06);
-    margin: 0 20px 40px;
-    padding: 25px;
-    border-radius: 40px;
-    backdrop-filter: blur(25px);
+.song-meta {
     display: flex;
-    justify-content: space-around; /* Buttons evenly spaced */
+    justify-content: space-between;
     align-items: center;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    margin-bottom: 30px;
+}
+
+/* --- PLAYER PAGE: Controls & Seek Bar --- */
+.progress-container { margin-top: 20px; }
+.time-bar { 
+    width: 100%; 
+    height: 4px; 
+    background: rgba(255,255,255,0.2); 
+    border-radius: 5px; 
+    position: relative; 
+}
+.progress-fill { 
+    height: 100%; 
+    background: white; 
+    width: 0%; 
+    border-radius: 5px; 
+    position: relative;
+}
+
+.time-stamps {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--sp-text-grey);
+    margin-top: 10px;
+}
+
+.main-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 40px;
 }
 
 .play-pause-circle {
@@ -284,26 +296,437 @@ body {
     align-items: center;
     justify-content: center;
     border: none;
-    box-shadow: 0 10px 30px rgba(255,255,255,0.2);
+    cursor: pointer;
+    transition: 0.2s;
 }
 
-.play-pause-circle i {
-    color: black;
-    font-size: 35px;
-}
+.play-pause-circle:active { transform: scale(0.9); }
+.play-pause-circle i { color: black; font-size: 40px; }
 
 .ctrl-btn {
     background: none;
     border: none;
     color: white;
-    font-size: 24px;
-    transition: 0.2s;
+    font-size: 28px;
+    cursor: pointer;
 }
 
+/* --- MINI PLAYER (For Main Page) --- */
+.sp-mini-player {
+    position: fixed; 
+    bottom: 20px; 
+    left: 10px; 
+    right: 10px;
+    background: rgba(40, 40, 40, 0.85); 
+    backdrop-filter: blur(15px);
+    border-radius: 8px; 
+    overflow: hidden;
+    z-index: 1000;
+    border: 1px solid rgba(255,255,255,0.05);
+}
+
+.sp-mini-content { 
+    display: flex; 
+    align-items: center; 
+    padding: 10px 14px; 
+    gap: 12px; 
+}
+
+.mini-art { width: 42px; height: 42px; border-radius: 4px; }
+.mini-meta { flex-grow: 1; }
+.mini-meta p { margin: 0; font-size: 13px; font-weight: 600; }
+.mini-sub { color: var(--sp-text-grey) !important; font-size: 11px !important; }
+
+.sp-progress-bg { height: 2px; background: rgba(255,255,255,0.1); width: 100%; }
+.sp-progress-fill { height: 100%; background: white; width: 0%; }
+
+/* Thumbnail ki jagah Waves visualizer */
+.visualizer-container {
+    width: 100%;
+    height: 300px; /* Bada area waves ke liye */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 40px 0;
+}
+
+.playing-waves {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    height: 100px;
+}
+
+.playing-waves span {
+    width: 6px;
+    height: 20%;
+    background: var(--sp-green); /* Spotify Green Waves */
+    border-radius: 10px;
+    animation: wave-anim 1.2s ease-in-out infinite;
+    box-shadow: 0 0 15px var(--sp-green);
+}
+
+/* Har bar (wave) ki timing alag taaki random lage */
+.playing-waves span:nth-child(1) { animation-delay: 0.1s; }
+.playing-waves span:nth-child(2) { animation-delay: 0.3s; }
+.playing-waves span:nth-child(3) { animation-delay: 0.6s; }
+.playing-waves span:nth-child(4) { animation-delay: 0.2s; }
+.playing-waves span:nth-child(5) { animation-delay: 0.5s; }
+.playing-waves span:nth-child(6) { animation-delay: 0.4s; }
+.playing-waves span:nth-child(7) { animation-delay: 0.1s; }
+
+@keyframes wave-anim {
+    0%, 100% { height: 20%; }
+    50% { height: 100%; }
+}
+
+/* Player page par thumbnail wala purana shadow hata diya */
+.full-album-art { display: none; }
+
+
+
+/* Progress Bar - Clickable area */
+.time-bar { 
+    width: 100%; 
+    height: 6px; /* Thoda mota kiya taaki touch karne mein aasani ho */
+    background: rgba(255,255,255,0.1); 
+    border-radius: 10px; 
+    position: relative; 
+    cursor: pointer; /* Sabse important: click wala haath dikhega */
+    transition: height 0.2s;
+}
+
+/* Hover karne par bar thodi badi ho jaye (Spotify style) */
+.time-bar:hover {
+    height: 8px;
+}
+
+.progress-fill { 
+    height: 100%; 
+    background: var(--sp-green); /* Line ab Spotify Green dikhega */
+    width: 0%; 
+    border-radius: 10px; 
+    position: relative;
+    transition: width 0.1s linear;
+}
+
+/* Progress bar ke aage ka chota dot */
+.progress-fill::after {
+    content: '';
+    position: absolute;
+    right: -5px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 12px;
+    height: 12px;
+    background: white;
+    border-radius: 50%;
+    opacity: 0; /* Normal mein hide rahega */
+    transition: opacity 0.2s;
+}
+
+.time-bar:hover .progress-fill::after {
+    opacity: 1; /* Mouse le jane par dot dikhega */
+}
+
+/* Waves Animation Update */
+.playing-waves span {
+    width: 6px;
+    height: 20%;
+    background: var(--sp-green);
+    border-radius: 10px;
+    animation: wave-anim 1.2s ease-in-out infinite;
+    box-shadow: 0 0 20px var(--sp-green); /* Zyada glow */
+}
+
+/* Jab gaana pause ho toh waves ko dheela kar do */
+.paused-waves span {
+    animation-play-state: paused;
+    opacity: 0.5;
+}
+
+
+/* 1. Background ko thoda depth dene ke liye */
+.player-body {
+    background: radial-gradient(circle at top, #333 0%, #121212 100%) !important;
+    position: relative;
+}
+
+/* 2. Waves Visualizer ko aur 'Alive' banate hain */
+.visualizer-container {
+    background: rgba(255, 255, 255, 0.03); /* Glass effect */
+    border-radius: 20px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    margin: 30px 0;
+    padding: 40px 0;
+    box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
+}
+
+.playing-waves span {
+    width: 8px; /* Thoda mota */
+    margin: 0 2px;
+    background: linear-gradient(to top, var(--sp-green), #8affae); /* Gradient waves */
+    box-shadow: 0 0 25px rgba(29, 185, 84, 0.8);
+}
+
+/* 3. Song Title Animation (Agar bada naam ho toh move karega) */
+.title-wrap {
+    max-width: 80%;
+    overflow: hidden;
+}
+
+.player-title {
+    font-size: 26px;
+    letter-spacing: -1px;
+    text-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    white-space: nowrap;
+}
+
+/* 4. Controls ko thoda 'Apple' jaisa finish dete hain */
+.play-pause-circle {
+    width: 80px;
+    height: 80px;
+    background: #fff;
+    box-shadow: 0 10px 30px rgba(255, 255, 255, 0.2);
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.play-pause-circle:hover {
+    transform: scale(1.08);
+    box-shadow: 0 15px 40px rgba(255, 255, 255, 0.3);
+}
+
+.ctrl-btn i {
+    font-size: 32px;
+    opacity: 0.8;
+    transition: 0.3s;
+}
+
+.ctrl-btn:hover i {
+    opacity: 1;
+    color: var(--sp-green);
+    text-shadow: 0 0 10px var(--sp-green);
+}
+
+/* 5. Progress Bar 'Premium' Glow */
+.time-bar {
+    height: 5px;
+    background: rgba(255,255,255,0.08);
+}
+
+.progress-fill {
+    box-shadow: 0 0 15px var(--sp-green);
+}
+
+/* 1. Background Breathing Animation */
+@keyframes backgroundBreath {
+    0% { background-color: #121212; }
+    50% { background-color: #1a1a1a; }
+    100% { background-color: #121212; }
+}
+
+.player-body {
+    animation: backgroundBreath 8s ease-in-out infinite;
+    background: radial-gradient(circle at center, #222 0%, #121212 100%) !important;
+}
+
+/* 2. Neon Progress Glow (The Trail) */
+.progress-fill {
+    position: relative;
+    background: linear-gradient(90deg, var(--sp-green), #8affae);
+    box-shadow: 0 0 20px rgba(29, 185, 84, 0.6);
+}
+
+/* Progress bar ke aage ek chamakta hua 'Star' */
+.progress-fill::after {
+    content: '';
+    position: absolute;
+    right: -2px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 10px;
+    height: 10px;
+    background: #fff;
+    border-radius: 50%;
+    box-shadow: 0 0 15px #fff, 0 0 30px var(--sp-green);
+}
+
+/* 3. Glassmorphic Control Panel */
+.main-controls {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 25px;
+    border-radius: 40px;
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+    margin-top: 50px;
+}
+
+/* 4. Heart Button Ka Dhamaal */
+.heart-btn i {
+    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.heart-btn:hover i {
+    transform: scale(1.2) rotate(-10deg);
+    color: #ff4d4d; /* Hover par halka red hint */
+}
+
+/* 5. Smooth Text Shadow for Title */
+.player-title {
+    background: linear-gradient(to right, #fff, var(--sp-text-grey));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 900;
+}
+
+
+/* 1. Heart Button Basic Look */
+.heart-btn {
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    outline: none;
+    padding: 10px;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* 2. Jab Like active ho (Green Glow) */
 .heart-btn.active i {
     color: var(--sp-green);
-    text-shadow: 0 0 20px var(--sp-green);
+    text-shadow: 0 0 15px rgba(29, 185, 84, 0.8), 0 0 30px rgba(29, 185, 84, 0.4);
     animation: heartBeat 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-/* --- END OF UPDATED SECTION --- */
+/* 3. Click karne par Heartbeat Animation */
+@keyframes heartBeat {
+    0% { transform: scale(1); }
+    25% { transform: scale(1.4); }
+    50% { transform: scale(1.1); }
+    75% { transform: scale(1.3); }
+    100% { transform: scale(1); }
+}
+
+/* 4. Hover effect - thoda sa tilt aur red hint */
+.heart-btn:hover i {
+    transform: scale(1.1);
+    color: #ff4d4d; /* Halka red hover par */
+}
+
+/* 5. Material Icon ki size aur smoothness */
+.heart-btn i {
+    font-size: 32px;
+    transition: transform 0.3s, color 0.3s;
+}
+
+/* 1. Main Background and Smooth Scroll */
+body {
+    background-color: #0c0c0c;
+    scroll-behavior: smooth;
+    font-family: 'Circular Standard', sans-serif; /* Spotify jaisi vibe */
+}
+
+/* 2. Header Magic - Glass Effect */
+.spotify-header {
+    background: rgba(18, 18, 18, 0.7);
+    backdrop-filter: blur(20px);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    padding: 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* 3. Search Bar Glow Up */
+.search-pill {
+    background: #242424 !important;
+    border: 1px solid transparent;
+    transition: all 0.3s ease;
+    border-radius: 50px;
+}
+
+.search-pill:focus-within {
+    border-color: var(--sp-green);
+    box-shadow: 0 0 15px rgba(29, 185, 84, 0.2);
+    transform: scale(1.02);
+}
+
+/* 4. Card Magic: Glassmorphism Grid */
+.sp-card {
+    background: rgba(255, 255, 255, 0.03) !important;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 15px !important;
+    padding: 15px;
+    transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Card Hover: Lift and Glow */
+.sp-card:hover {
+    background: rgba(255, 255, 255, 0.08) !important;
+    transform: translateY(-8px);
+    border-color: rgba(29, 185, 84, 0.4);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(29, 185, 84, 0.1);
+}
+
+/* 5. Thumbnail Image Zoom */
+.sp-img {
+    border-radius: 10px;
+    transition: transform 0.5s ease;
+}
+
+.sp-card:hover .sp-img {
+    transform: scale(1.05); /* Card hover par image halki zoom hogi */
+}
+
+/* 6. Play Button Pop (Card ke andar wala) */
+.sp-play-btn {
+    background: var(--sp-green) !important;
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3);
+    transform: translateY(10px);
+    opacity: 0;
+    transition: all 0.3s ease;
+}
+
+.sp-card:hover .sp-play-btn {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+/* 7. Category Chips Premium Look */
+.chip {
+    background: #282828;
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+    font-weight: 600;
+}
+
+.chip.active {
+    background: var(--sp-green) !important;
+    color: black;
+    box-shadow: 0 4px 15px rgba(29, 185, 84, 0.4);
+}
+
+.chip:hover:not(.active) {
+    background: #3e3e3e;
+    transform: scale(1.05);
+}
+
+.sp-likes-badge {
+    background: rgba(29, 185, 84, 0.1);
+    padding: 2px 8px;
+    border-radius: 12px;
+    border: 1px solid rgba(29, 185, 84, 0.2);
+    box-shadow: 0 0 10px rgba(29, 185, 84, 0.1);
+}
+
+.sp-meta-row {
+    margin-top: 5px;
+}
