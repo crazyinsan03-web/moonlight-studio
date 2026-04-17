@@ -17,13 +17,9 @@ ADMIN_PASSWORD = "moon"
 
 db.init_app(app)
 
-# --- FORCE DATABASE SYNC ---
+# Database table banane ke liye (Drop all hata diya hai ab)
 with app.app_context():
-    # Pehle ye line purani table udayegi (Error fix karne ke liye)
-    db.drop_all() 
-    # Phir ye line nayi table banayegi likes column ke saath
     db.create_all()
-    print("🚀 Database Force Reset Successful!")
 
 def get_video_id(url):
     pattern = r"(?:v=|\/|embed\/|youtu.be\/)([0-9A-Za-z_-]{11})"
@@ -43,9 +39,11 @@ def index():
 @app.route('/upload', methods=['GET', 'POST'])
 def upload():
     if request.method == 'POST':
+        # YAHAN DEKHO: admin_password naam ka data fetch ho raha hai
         entered_pass = request.form.get('admin_password')
-        if entered_pass != ADMIN_PASSWORD:
-            return "❌ Access Denied: Galat Password!", 403
+        
+        if str(entered_pass) != ADMIN_PASSWORD:
+            return f"❌ Access Denied: Password '{entered_pass}' galat hai!", 403
 
         yt_link = request.form.get('youtube_link')
         v_id = get_video_id(yt_link)
@@ -63,14 +61,14 @@ def upload():
                 return redirect(url_for('index'))
             except Exception as e:
                 db.session.rollback()
-                print(f"Upload Error: {e}")
+                return f"Upload Error: {e}", 500
                 
     return render_template('upload.html')
 
 @app.route('/delete/<int:id>', methods=['POST'])
 def delete_song(id):
     entered_pass = request.form.get('admin_password')
-    if entered_pass != ADMIN_PASSWORD:
+    if str(entered_pass) != ADMIN_PASSWORD:
         return "❌ Unauthorized: Password galat hai!", 403
     
     song = Song.query.get_or_404(id)
@@ -81,11 +79,9 @@ def delete_song(id):
 @app.route('/like/<int:id>', methods=['POST'])
 def like_song(id):
     song = Song.query.get_or_404(id)
-    if hasattr(song, 'likes'):
-        song.likes += 1
-        db.session.commit()
-        return jsonify({"likes": song.likes})
-    return jsonify({"error": "Likes column missing"}), 400
+    song.likes += 1
+    db.session.commit()
+    return jsonify({"likes": song.likes})
 
 @app.route('/song/<int:id>')
 def player(id):
