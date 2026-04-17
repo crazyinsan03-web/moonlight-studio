@@ -21,12 +21,11 @@
             color: white;
             font-family: 'Plus Jakarta Sans', sans-serif;
             margin: 0;
-            padding-bottom: 100px; /* Space for Bottom Nav */
+            padding-bottom: 100px;
             background: radial-gradient(circle at 50% 0%, #1a1a2e 0%, #050505 100%);
             min-height: 100vh;
         }
 
-        /* Animated Background Dots */
         .stars {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             z-index: -1; opacity: 0.3;
@@ -42,7 +41,6 @@
             box-sizing: border-box;
         }
 
-        /* Premium Header */
         header {
             padding: 20px 0;
             display: flex;
@@ -59,7 +57,6 @@
             -webkit-text-fill-color: transparent;
         }
 
-        /* Search Bar Upgrade */
         .search-box {
             position: relative;
             margin: 20px 0;
@@ -76,6 +73,7 @@
             font-size: 1rem;
             outline: none;
             transition: 0.3s;
+            box-sizing: border-box;
         }
 
         .search-box input:focus {
@@ -83,14 +81,13 @@
             box-shadow: 0 0 20px rgba(0, 229, 255, 0.1);
         }
 
-        /* Categories Scroll */
         .categories {
             display: flex;
             gap: 12px;
             overflow-x: auto;
             padding-bottom: 10px;
             margin-bottom: 25px;
-            scrollbar-width: none; /* Hidden scrollbar */
+            scrollbar-width: none;
         }
         .categories::-webkit-scrollbar { display: none; }
         
@@ -106,7 +103,6 @@
         }
         .cat-chip.active { background: var(--neon); color: black; border: none; }
 
-        /* Song Card - Spotify Style */
         .song-card {
             display: flex;
             align-items: center;
@@ -120,23 +116,23 @@
             backdrop-filter: blur(5px);
         }
 
-        .song-card:active { transform: scale(0.97); background: rgba(255,255,255,0.06); }
+        .song-card:active { transform: scale(0.97); }
 
         .album-art {
             width: 60px; height: 60px;
-            background: linear-gradient(45deg, #111, #333);
+            background: #111;
             border-radius: 12px;
             margin-right: 15px;
             display: flex; align-items: center; justify-content: center;
-            font-size: 1.5rem;
+            overflow: hidden;
             box-shadow: 0 5px 15px rgba(0,0,0,0.3);
         }
+        .album-art img { width: 100%; height: 100%; object-fit: cover; }
 
         .song-info { flex: 1; }
-        .song-info h3 { margin: 0; font-size: 1.05rem; font-weight: 600; letter-spacing: -0.3px; }
+        .song-info h3 { margin: 0; font-size: 1.05rem; font-weight: 600; }
         .song-info p { margin: 4px 0 0; font-size: 0.75rem; color: #666; font-weight: 500; }
 
-        /* Bottom Navigation Bar */
         .bottom-nav {
             position: fixed; bottom: 20px; left: 50%;
             transform: translateX(-50%);
@@ -147,7 +143,6 @@
             border-radius: 30px;
             display: flex; justify-content: space-around;
             padding: 15px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.6);
             z-index: 1000;
         }
 
@@ -178,32 +173,36 @@
         <div class="cat-chip">Party</div>
         <div class="cat-chip">Sad</div>
         <div class="cat-chip">Lo-fi</div>
-        <div class="cat-chip">Old School</div>
     </div>
 
    <div id="song-list">
     {% for song in songs %}
     <div class="song-card" onclick="window.location.href='/song/{{ song.id }}'">
-        <div class="album-art">🎧</div>
+        <div class="album-art">
+            {% if song.thumbnail %}
+                <img src="{{ song.thumbnail }}" alt="art">
+            {% else %}
+                🎧
+            {% endif %}
+        </div>
         <div class="song-info">
             <h3>{{ song.title }}</h3>
             <p>MASHUP • MOONLIGHT STUDIO</p>
         </div>
         
         <div style="display: flex; align-items: center;">
-            {% if session.logged_in %}
-                <div class="del-btn" 
-                     onclick="event.stopPropagation(); if(confirm('Bhai, pakka uda du ye mashup?')) window.location.href='/delete/{{ song.id }}'"
-                     style="color: #ff4d4d; font-size: 1.2rem; margin-right: 15px; cursor: pointer; z-index: 100;">
+            {% if session.get('logged_in') %}
+                <div onclick="event.stopPropagation(); if(confirm('Uda du?')) window.location.href='/delete/{{ song.id }}'"
+                     style="color: #ff4d4d; font-size: 1.2rem; margin-right: 15px; cursor: pointer;">
                      ✕
                 </div>
             {% endif %}
             <div style="color: var(--neon); font-size: 0.8rem;">▶</div>
         </div>
     </div>
-    {% endfor %} </div> ```
-
-
+    {% endfor %}
+   </div>
+</div>
 
 <div class="bottom-nav">
     <a href="/" class="nav-item active">
@@ -223,12 +222,11 @@
         <span>Anish</span>
     </a>
 </div>
+
 <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/static/sw.js')
-        .then(reg => console.log('SW Registered!'))
-        .catch(err => console.log('SW Failed!', err));
+      navigator.serviceWorker.register('/static/sw.js');
     });
   }
 </script>
