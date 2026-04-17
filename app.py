@@ -13,13 +13,17 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = 'moonlight_exclusive_2026'
 
 # --- ADMIN PASSWORD ---
-# Isse tu apne hisaab se badal sakta hai
 ADMIN_PASSWORD = "moon"
 
 db.init_app(app)
 
+# --- FORCE DATABASE SYNC ---
 with app.app_context():
+    # Pehle ye line purani table udayegi (Error fix karne ke liye)
+    db.drop_all() 
+    # Phir ye line nayi table banayegi likes column ke saath
     db.create_all()
+    print("🚀 Database Force Reset Successful!")
 
 def get_video_id(url):
     pattern = r"(?:v=|\/|embed\/|youtu.be\/)([0-9A-Za-z_-]{11})"
@@ -39,7 +43,6 @@ def index():
 @app.route('/upload', methods=['GET', 'POST'])
 def upload():
     if request.method == 'POST':
-        # Password Check
         entered_pass = request.form.get('admin_password')
         if entered_pass != ADMIN_PASSWORD:
             return "❌ Access Denied: Galat Password!", 403
@@ -64,7 +67,6 @@ def upload():
                 
     return render_template('upload.html')
 
-# --- DELETE SONG (Admin Only) ---
 @app.route('/delete/<int:id>', methods=['POST'])
 def delete_song(id):
     entered_pass = request.form.get('admin_password')
@@ -76,11 +78,9 @@ def delete_song(id):
     db.session.commit()
     return redirect(url_for('index'))
 
-# --- LIKE SONG (For Users) ---
 @app.route('/like/<int:id>', methods=['POST'])
 def like_song(id):
     song = Song.query.get_or_404(id)
-    # Agar model mein likes nahi hai toh humein models.py bhi update karna hoga
     if hasattr(song, 'likes'):
         song.likes += 1
         db.session.commit()
