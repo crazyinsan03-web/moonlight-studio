@@ -35,15 +35,16 @@ body {
 
 /* --- MAIN PAGE: Header & Search --- */
 .spotify-header { 
-    padding: 50px 20px 10px; 
-    background: linear-gradient(rgba(0,0,0,0.4) 0%, transparent 100%);
-    /* YE WALI LINES ADD KAR DE */
-    display: flex;
-    flex-direction: column;
-    gap: 15px; /* Isse Greeting aur Search ke beech space ban jayega */
+    padding: 30px 15px 15px; /* Spacing thodi kam ki mobile ke liye */
+    background: linear-gradient(rgba(0,0,0,0.6) 0%, transparent 100%);
     position: sticky;
     top: 0;
     z-index: 1000;
+    /* YE ADD KAR */
+    display: flex;
+    flex-direction: column;
+    gap: 15px; 
+
 
 }
 
@@ -55,14 +56,14 @@ body {
 }
 
 .search-pill {
-    background: #242424;
-    padding: 14px 18px;
+    width: 100%; /* Isse bar screen ke bahar nahi jayegi */
+    background: #242424 !important;
+    padding: 12px 18px;
     border-radius: 50px;
     display: flex;
     align-items: center;
     gap: 12px;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    border: 1px solid transparent;
+
 }
 
 .search-pill:focus-within {
@@ -84,11 +85,11 @@ body {
 .filter-chips { 
     display: flex; 
     gap: 10px; 
-    padding: 15px 20px; 
+    padding: 5px 0px; /* Top/Bottom padding kam ki */
     overflow-x: auto;
     scrollbar-width: none;
+    width: 100%;
 }
-
 .chip { 
     background: #2a2a2a; 
     padding: 8px 18px; 
@@ -107,12 +108,10 @@ body {
 /* --- MAIN PAGE: Grid & Cards --- */
 .spotify-grid {
     display: grid; 
-    /* '1fr 1fr' ki jagah ye use kar, isse width auto-adjust hogi */
-    grid-template-columns: repeat(2, 1fr); 
-    gap: 12px; /* Gap thoda kam kiya taaki mobile par fit aaye */
-    padding: 12px; /* Side ki spacing */
-    padding-bottom: 140px;
-    width: 100%; /* Screen ke bahar jaane se rokega */
+    grid-template-columns: repeat(2, 1fr); /* 2 Barabar columns */
+    gap: 12px; 
+    padding: 15px; /* Side margin set ki */
+    width: 100%;
 }
 
 .sp-card {
