@@ -2,7 +2,7 @@ import os
 import random
 import requests
 import re
-from flask import Flask, render_template, request, redirect, url_for, session
+from flask import Flask, render_template, request, redirect, url_for, session, jsonify
 from models import db, Song
 
 app = Flask(__name__)
@@ -12,17 +12,15 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://neondb_owner:npg_tSE5owdI4
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = 'moonlight_exclusive_2026'
 
+# --- ADMIN PASSWORD ---
+# Isse tu apne hisaab se badal sakta hai
+ADMIN_PASSWORD = "moonlight_admin"
+
 db.init_app(app)
 
-# --- DATABASE RESET & SYNC ---
 with app.app_context():
-    # Pehle purani table udayega (sirf ek baar reset ke liye)
-    # Jab site chal jaye, toh line 21 ko delete kar dena
-    
     db.create_all()
-    print("🚀 Database Reset Successful! Nayi table ban gayi hai.")
 
-# YouTube Link se ID nikalne ka function
 def get_video_id(url):
     pattern = r"(?:v=|\/|embed\/|youtu.be\/)([0-9A-Za-z_-]{11})"
     match = re.search(pattern, url)
@@ -32,10 +30,8 @@ def get_video_id(url):
 def index():
     search_query = request.args.get('search')
     if search_query:
-        # User ke search ke hisaab se saved gaane dhoondo
         songs = Song.query.filter(Song.title.ilike(f'%{search_query}%')).all()
     else:
-        # Dashboard par saare gaane shuffle karke dikhao
         songs = Song.query.all()
         random.shuffle(songs)
     return render_template('index.html', songs=songs, search_query=search_query)
@@ -43,20 +39,21 @@ def index():
 @app.route('/upload', methods=['GET', 'POST'])
 def upload():
     if request.method == 'POST':
+        # Password Check
+        entered_pass = request.form.get('admin_password')
+        if entered_pass != ADMIN_PASSWORD:
+            return "❌ Access Denied: Galat Password!", 403
+
         yt_link = request.form.get('youtube_link')
         v_id = get_video_id(yt_link)
         
         if v_id:
             try:
-                # YouTube se automatic Title fetch karna
                 response = requests.get(f"https://noembed.com/embed?url=https://www.youtube.com/watch?v={v_id}")
                 data = response.json()
                 title = data.get('title', 'Moonlight Studio Mix')
-                
-                # Thumbnail high quality link
                 thumb = f"https://img.youtube.com/vi/{v_id}/maxresdefault.jpg"
                 
-                # Neon Database mein save
                 new_song = Song(title=title, video_id=v_id, thumbnail=thumb)
                 db.session.add(new_song)
                 db.session.commit()
@@ -66,6 +63,29 @@ def upload():
                 print(f"Upload Error: {e}")
                 
     return render_template('upload.html')
+
+# --- DELETE SONG (Admin Only) ---
+@app.route('/delete/<int:id>', methods=['POST'])
+def delete_song(id):
+    entered_pass = request.form.get('admin_password')
+    if entered_pass != ADMIN_PASSWORD:
+        return "❌ Unauthorized: Password galat hai!", 403
+    
+    song = Song.query.get_or_404(id)
+    db.session.delete(song)
+    db.session.commit()
+    return redirect(url_for('index'))
+
+# --- LIKE SONG (For Users) ---
+@app.route('/like/<int:id>', methods=['POST'])
+def like_song(id):
+    song = Song.query.get_or_404(id)
+    # Agar model mein likes nahi hai toh humein models.py bhi update karna hoga
+    if hasattr(song, 'likes'):
+        song.likes += 1
+        db.session.commit()
+        return jsonify({"likes": song.likes})
+    return jsonify({"error": "Likes column missing"}), 400
 
 @app.route('/song/<int:id>')
 def player(id):
