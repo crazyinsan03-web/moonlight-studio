@@ -73,10 +73,16 @@
 
     <div class="upload-card">
         <div class="icon-circle">🎞️</div>
-        <h2>Moonlight Admin</h2>
-        <p>Sync new mashups to the official studio dashboard</p>
+        <h2>Moonlight Editor</h2>
+        <p>Enter details to add a custom mix to your studio</p>
 
         <form id="uploadForm" method="POST" onsubmit="return showStatus()">
+            
+            <div class="input-group">
+                <label>Song Title</label>
+                <input type="text" name="custom_title" placeholder="e.g. Dark Vibes Mashup" required>
+            </div>
+
             <div class="input-group">
                 <label>YouTube Link</label>
                 <input type="text" name="youtube_link" placeholder="https://www.youtube.com/watch?v=..." required>
@@ -88,7 +94,7 @@
                        style="width: 100%; background: var(--glass); border: 1px solid rgba(255,255,255,0.1); padding: 18px; border-radius: 18px; color: white; outline: none;">
             </div>
 
-            <button type="submit" class="submit-btn" id="subBtn">Add to Studio</button>
+            <button type="submit" class="submit-btn" id="subBtn">Add to Dashboard</button>
             
             <div id="status">AUTHORIZING & SYNCING...</div>
         </form>
