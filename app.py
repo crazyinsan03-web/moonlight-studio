@@ -1,92 +1,105 @@
 import os
-import random
-import requests
 import re
-from flask import Flask, render_template, request, redirect, url_for, session, jsonify
-from models import db, Song
+import psycopg2
+from flask import Flask, render_template, request, redirect, url_for, jsonify
 
 app = Flask(__name__)
 
-# --- CONFIGURATION ---
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://neondb_owner:npg_tSE5owdI4LzK@ep-quiet-wave-an83dt9u.c-6.us-east-1.aws.neon.tech/neondb?sslmode=require'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SECRET_KEY'] = 'moonlight_exclusive_2026'
+# TERA NEON CONNECTION STRING (Ekdum secure)
+DB_URL = "postgresql://neondb_owner:npg_M7CR8fwVjeNY@ep-blue-union-an1h5dmf-pooler.c-6.us-east-1.aws.neon.tech/neondb?sslmode=require"
 
-# --- ADMIN PASSWORD ---
-ADMIN_PASSWORD = "moon"
+def get_db_connection():
+    conn = psycopg2.connect(DB_URL)
+    return conn
 
-db.init_app(app)
+def extract_video_id(url):
+    # YouTube link se Video ID nikalne ka logic
+    pattern = r"(?:v=|\/)([0-9A-Za-z_-]{11}).*"
+    video_id = re.search(pattern, url)
+    if video_id:
+        return video_id.group(1)
+    return None
 
-# Database table sync
-with app.app_context():
-    db.create_all()
-
-def get_video_id(url):
-    pattern = r"(?:v=|\/|embed\/|youtu.be\/)([0-9A-Za-z_-]{11})"
-    match = re.search(pattern, url)
-    return match.group(1) if match else None
-
+# --- MAIN PAGE ---
 @app.route('/')
 def index():
-    search_query = request.args.get('search')
-    if search_query:
-        songs = Song.query.filter(Song.title.ilike(f'%{search_query}%')).all()
-    else:
-        songs = Song.query.all()
-        random.shuffle(songs)
-    return render_template('index.html', songs=songs, search_query=search_query)
+    conn = get_db_connection()
+    cur = conn.cursor()
+    # Saare gaane load karo (Naya pehle)
+    cur.execute('SELECT * FROM songs ORDER BY id DESC')
+    songs = cur.fetchall()
+    cur.close()
+    conn.close()
+    return render_template('index.html', songs=songs)
 
-@app.route('/upload', methods=['GET', 'POST'])
-def upload():
-    if request.method == 'POST':
-        # Admin Password Check
-        entered_pass = request.form.get('admin_password')
-        if str(entered_pass) != ADMIN_PASSWORD:
-            return f"❌ Access Denied: Password galat hai!", 403
-
-        yt_link = request.form.get('youtube_link')
-        custom_title = request.form.get('custom_title') # Jo tu khud likhega
-        v_id = get_video_id(yt_link)
-        
-        if v_id and custom_title:
-            try:
-                # Thumbnail automatic fetch hoga lekin Title tera wala use hoga
-                thumb = f"https://img.youtube.com/vi/{v_id}/maxresdefault.jpg"
-                
-                new_song = Song(title=custom_title, video_id=v_id, thumbnail=thumb)
-                db.session.add(new_song)
-                db.session.commit()
-                return redirect(url_for('index'))
-            except Exception as e:
-                db.session.rollback()
-                return f"Upload Error: {e}", 500
-        else:
-            return "❌ Error: Title aur Link dono bharna zaroori hai!", 400
-                
-    return render_template('upload.html')
-
-@app.route('/delete/<int:id>', methods=['POST'])
-def delete_song(id):
-    entered_pass = request.form.get('admin_password')
-    if str(entered_pass) != ADMIN_PASSWORD:
-        return "❌ Unauthorized: Password galat hai!", 403
+# --- PLAYER PAGE ---
+@app.route('/player/<int:song_id>')
+def player(song_id):
+    conn = get_db_connection()
+    cur = conn.cursor()
+    # Database se current song fetch karo
+    cur.execute('SELECT * FROM songs WHERE id = %s', (song_id,))
+    song = cur.fetchone()
     
-    song = Song.query.get_or_404(id)
-    db.session.delete(song)
-    db.session.commit()
+    # Next song ka logic
+    cur.execute('SELECT id FROM songs WHERE id < %s ORDER BY id DESC LIMIT 1', (song_id,))
+    next_song = cur.fetchone()
+    
+    cur.close()
+    conn.close()
+    
+    if song:
+        return render_template('player.html', song=song, next_id=next_song[0] if next_song else None)
     return redirect(url_for('index'))
 
-@app.route('/like/<int:id>', methods=['POST'])
-def like_song(id):
-    song = Song.query.get_or_404(id)
-    song.likes += 1
-    db.session.commit()
-    return jsonify({"likes": song.likes})
+# --- LIKE SYSTEM (New Feature) ---
+@app.route('/like/<int:song_id>', methods=['POST'])
+def like_song(song_id):
+    conn = get_db_connection()
+    cur = conn.cursor()
+    try:
+        # Database mein likes +1 karo
+        cur.execute('UPDATE songs SET likes = likes + 1 WHERE id = %s', (song_id,))
+        conn.commit()
+        success = True
+    except:
+        success = False
+    cur.close()
+    conn.close()
+    return jsonify({"success": success})
 
-@app.route('/song/<int:id>')
-def player(id):
-    song = Song.query.get_or_404(id)
-    return render_template('player.html', song=song)
+# --- ADMIN PANEL ---
+@app.route('/admin', methods=['GET', 'POST'])
+def admin():
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    if request.method == 'POST':
+        # Agar DELETE button dabaya
+        if 'delete_id' in request.form:
+            song_id = request.form['delete_id']
+            cur.execute('DELETE FROM songs WHERE id = %s', (song_id,))
+            conn.commit()
+        
+        # Agar Naya Gaana add kiya
+        elif 'title' in request.form:
+            title = request.form['title']
+            link = request.form['link']
+            category = request.form.get('category', 'General')
+            yt_id = extract_video_id(link)
+            if yt_id:
+                # yt_id, title aur category ke saath 'likes' default 0 jayega
+                cur.execute('INSERT INTO songs (title, yt_id, category, likes) VALUES (%s, %s, %s, 0)',
+                            (title, yt_id, category))
+                conn.commit()
+
+    # Admin page ki list refresh karo
+    cur.execute('SELECT * FROM songs ORDER BY id DESC')
+    songs = cur.fetchall()
+    cur.close()
+    conn.close()
+    return render_template('admin.html', songs=songs)
 
 if __name__ == '__main__':
+    # Server start karne ka command
     app.run(debug=True)
