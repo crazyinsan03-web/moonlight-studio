@@ -16,11 +16,9 @@ db.init_app(app)
 
 # app.py mein ye hissa dhoondo aur badlo
 with app.app_context():
-with app.app_context():
-    # In sab ke aage ek Tab ya 4 spaces do
-    db.drop_all() 
+    db.drop_all()
     db.create_all()
-    print("🚀 Database Reset Successful!")
+    print("🚀 Database Reset Successful!"))
 
 # YouTube Link se ID nikalne ka function
 def get_video_id(url):
