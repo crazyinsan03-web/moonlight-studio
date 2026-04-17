@@ -29,32 +29,25 @@
         }
 
         .icon-circle {
-            width: 80px; height: 80px; background: rgba(0, 229, 255, 0.1);
+            width: 80px; height: 80px; background: rgba(255, 0, 0, 0.1);
             border-radius: 50%; display: flex; align-items: center; justify-content: center;
-            margin: 0 auto 25px; font-size: 2rem; border: 1px solid var(--neon);
-            box-shadow: 0 0 20px rgba(0, 229, 255, 0.2);
+            margin: 0 auto 25px; font-size: 2rem; border: 1px solid #ff0000;
+            box-shadow: 0 0 20px rgba(255, 0, 0, 0.2);
         }
 
         h2 { font-size: 1.8rem; font-weight: 800; margin-bottom: 10px; letter-spacing: -1px; }
-        p { color: #666; font-size: 0.85rem; margin-bottom: 35px; }
+        p { color: #888; font-size: 0.85rem; margin-bottom: 35px; }
 
-        .input-group { margin-bottom: 20px; text-align: left; }
+        .input-group { margin-bottom: 25px; text-align: left; }
         label { display: block; font-size: 0.7rem; font-weight: 800; color: var(--neon); letter-spacing: 1.5px; margin-bottom: 10px; text-transform: uppercase; }
         
         input[type="text"] {
             width: 100%; background: var(--glass); border: 1px solid rgba(255,255,255,0.1);
             padding: 18px; border-radius: 18px; color: white; outline: none; transition: 0.3s;
+            font-size: 0.9rem;
         }
         input[type="text"]:focus { border-color: var(--neon); background: rgba(0,229,255,0.05); }
 
-        .file-drop {
-            width: 100%; border: 2px dashed rgba(255,255,255,0.1);
-            border-radius: 20px; padding: 30px; cursor: pointer; transition: 0.3s;
-            margin-bottom: 30px; display: block;
-        }
-        .file-drop:hover { border-color: var(--neon); background: rgba(255,255,255,0.02); }
-
-        /* 🔥 Submit Button Style Added */
         .submit-btn {
             width: 100%; padding: 20px; background: white; color: black;
             border-radius: 20px; font-weight: 800; font-size: 1rem;
@@ -66,7 +59,8 @@
 
         #status { display: none; margin-top: 20px; font-size: 0.75rem; color: var(--neon); font-weight: 700; letter-spacing: 2px; }
 
-        .back-home { display: block; margin-top: 25px; color: #444; text-decoration: none; font-size: 0.8rem; font-weight: 600; }
+        .back-home { display: block; margin-top: 25px; color: #555; text-decoration: none; font-size: 0.8rem; font-weight: 600; transition: 0.3s; }
+        .back-home:hover { color: white; }
 
         @keyframes slideUp {
             from { opacity: 0; transform: translateY(30px); }
@@ -77,31 +71,22 @@
 <body>
 
     <div class="upload-card">
-        <div class="icon-circle">🎙️</div>
-        <h2>Studio Upload</h2>
-        <p>Your mix will be mastered in Moonlight Cloud</p>
+        <div class="icon-circle">🎞️</div>
+        <h2>Moonlight YouTube</h2>
+        <p>Paste any YouTube link to add it to your studio</p>
 
-        <form id="uploadForm" method="POST" enctype="multipart/form-data" onsubmit="return showStatus()">
+        <form id="uploadForm" method="POST" onsubmit="return showStatus()">
             <div class="input-group">
-                <label>Mix Title</label>
-                <input type="text" name="title" placeholder="e.g. Mahii Dil Dooba Mashup" required>
+                <label>YouTube Link</label>
+                <input type="text" name="youtube_link" placeholder="https://www.youtube.com/watch?v=..." required>
             </div>
 
-            <div class="input-group">
-                <label>Audio File</label>
-                <label class="file-drop">
-                    <span id="fileName" style="color:#555">Click to select MP3/WAV</span>
-                    <input type="file" name="file" accept="audio/*" required style="display:none" 
-                           onchange="document.getElementById('fileName').innerText = this.files[0].name; document.getElementById('fileName').style.color='#fff'">
-                </label>
-            </div>
-
-            <button type="submit" class="submit-btn" id="subBtn">Master & Upload</button>
+            <button type="submit" class="submit-btn" id="subBtn">Add to Dashboard</button>
             
-            <div id="status">PROCESSING MIX... PLEASE WAIT</div>
+            <div id="status">SYNCING WITH YOUTUBE...</div>
         </form>
 
-        <a href="/" class="back-home">BACK TO STUDIO</a>
+        <a href="/" class="back-home">← BACK TO STUDIO</a>
     </div>
 
     <script>
