@@ -14,7 +14,7 @@ app.config['SECRET_KEY'] = 'moonlight_exclusive_2026'
 
 # --- ADMIN PASSWORD ---
 # Isse tu apne hisaab se badal sakta hai
-ADMIN_PASSWORD = "moonlight_admin"
+ADMIN_PASSWORD = "moon"
 
 db.init_app(app)
 
