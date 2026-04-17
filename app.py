@@ -1,8 +1,7 @@
 import os
 import random
 import requests
-import cloudinary
-import cloudinary.uploader
+import re
 from flask import Flask, render_template, request, redirect, url_for, session
 from models import db, Song
 
@@ -13,71 +12,70 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://neondb_owner:npg_tSE5owdI4
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = 'moonlight_exclusive_2026'
 
-# Cloudinary Setup (Details match kar lena)
-cloudinary.config( 
-  cloud_name = "dr6v6vqun", 
-  api_key = "142167139174154", 
-  api_secret = "mE2M1t5P8fM681W1qM3f4NfNf6M" 
-)
-
 db.init_app(app)
 
 with app.app_context():
     db.create_all()
 
+# YouTube Link se ID nikalne ka function
+def get_video_id(url):
+    pattern = r"(?:v=|\/|embed\/|youtu.be\/)([0-9A-Za-z_-]{11})"
+    match = re.search(pattern, url)
+    return match.group(1) if match else None
+
 @app.route('/')
 def index():
     search_query = request.args.get('search')
-    highlighted_id = None
     
     if search_query:
-        # 1. DB mein check
-        song = Song.query.filter(Song.title.ilike(f'%{search_query}%')).first()
-        
-        if not song:
-            try:
-                # 2. Saavn API se dhoondo
-                resp = requests.get(f"https://saavn.dev/api/search/songs?query={search_query}", timeout=15)
-                if resp.status_code == 200:
-                    results = resp.json().get('data', {}).get('results', [])
-                    if results:
-                        top = results[0]
-                        # 3. Cloudinary par Upload (Permanent Storage)
-                        upload = cloudinary.uploader.upload(top['downloadUrl'][-1]['url'], resource_type="video")
-                        
-                        # 4. Neon mein Save
-                        song = Song(
-                            title=top['name'],
-                            song_url=upload['secure_url'],
-                            thumbnail=top['image'][-1]['url']
-                        )
-                        db.session.add(song)
-                        db.session.commit()
-                        highlighted_id = song.id
-            except Exception as e:
-                db.session.rollback()
-                print(f"Error: {e}")
-        else:
-            highlighted_id = song.id
-
-    # Dashboard logic
-    all_songs = Song.query.all()
-    if highlighted_id:
-        # Search wala gaana sabse upar
-        s1 = [s for s in all_songs if s.id == highlighted_id]
-        others = [s for s in all_songs if s.id != highlighted_id]
-        random.shuffle(others)
-        songs = s1 + others
+        # Search filter
+        songs = Song.query.filter(Song.title.ilike(f'%{search_query}%')).all()
     else:
-        songs = all_songs
+        # Normal Dashboard
+        songs = Song.query.all()
         random.shuffle(songs)
         
     return render_template('index.html', songs=songs, search_query=search_query)
+
+@app.route('/upload', methods=['GET', 'POST'])
+def upload():
+    if request.method == 'POST':
+        yt_link = request.form.get('youtube_link')
+        v_id = get_video_id(yt_link)
+        
+        if v_id:
+            try:
+                # YouTube se automatic Title fetch karna (No API Key Required)
+                response = requests.get(f"https://noembed.com/embed?url=https://www.youtube.com/watch?v={v_id}")
+                data = response.json()
+                title = data.get('title', 'Moonlight Studio Mix')
+                
+                # Thumbnail high quality link
+                thumb = f"https://img.youtube.com/vi/{v_id}/maxresdefault.jpg"
+                
+                # Neon Database mein save
+                new_song = Song(title=title, video_id=v_id, thumbnail=thumb)
+                db.session.add(new_song)
+                db.session.commit()
+                return redirect(url_for('index'))
+            except Exception as e:
+                db.session.rollback()
+                print(f"Upload Error: {e}")
+                
+    return render_template('upload.html')
 
 @app.route('/song/<int:id>')
 def player(id):
     song = Song.query.get_or_404(id)
     return render_template('player.html', song=song)
+
+# Admin delete route
+@app.route('/delete/<int:id>')
+def delete_song(id):
+    song = Song.query.get_or_404(id)
+    db.session.delete(song)
+    db.session.commit()
+    return redirect(url_for('index'))
 
 if __name__ == '__main__':
     app.run(debug=True)
