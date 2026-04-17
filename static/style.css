@@ -101,30 +101,45 @@ body {
 }
 
 /* --- MAIN PAGE: Grid & Cards --- */
+./* --- NEW FLEXBOX LAYOUT (GRID KI JAGAH) --- */
+
+/* --- MAIN PAGE: The Master Layout Fix --- */
+
+/* --- LINE 115 APPROX: GRID TO LIST --- */
 .spotify-grid {
-    display: grid !important; 
-    grid-template-columns: repeat(2, 1fr) !important; 
-    gap: 12px !important; 
+    display: flex !important;
+    flex-direction: column !important; /* Isse gaane side mein nahi, niche aayenge */
+    gap: 15px !important; 
     padding: 15px !important; 
     width: 100% !important;
     box-sizing: border-box !important;
+    padding-bottom: 150px !important;
 }
 
 .sp-card {
-    width: 100% !important;
-    min-width: 0 !important; /* Overflow rokega */
-    box-sizing: border-box !important;
-}
-.sp-title { 
-    font-size: 14px; 
-    font-weight: 700; 
-    margin: 12px 0 2px; 
-    display: block; /* Poori width lega */
-    overflow: hidden; 
-    text-overflow: ellipsis; 
-    white-space: nowrap; 
+    width: 100% !important; /* Card ab poori screen ki width lega */
+    display: flex !important;
+    flex-direction: row !important; /* Image left mein, text right mein */
+    align-items: center !important;
+    gap: 15px !important;
+    background: rgba(255, 255, 255, 0.03) !important;
+    padding: 12px !important;
+    border-radius: 12px !important;
 }
 
+.sp-img {
+    width: 80px !important; /* Thumbnail ko chota aur fixed rakha */
+    height: 80px !important;
+    aspect-ratio: 1/1 !important;
+    object-fit: cover !important;
+    border-radius: 8px !important;
+    flex-shrink: 0 !important;
+}
+
+.sp-title {
+    margin: 0 !important; /* Extra space hataya */
+    font-size: 16px !important;
+}
 .sp-meta-row {
     display: flex;
     justify-content: space-between;
@@ -145,15 +160,7 @@ body {
     box-shadow: 0 12px 24px rgba(0,0,0,0.5); 
 }
 
-.sp-img { 
-    width: 100% !important;
-    max-width: 100% !important;
-    height: auto;
-    aspect-ratio: 1 / 1; 
-    object-fit: cover; 
-    border-radius: 6px;
-    display: block;
-}
+
 
 .sp-play-btn {
     position: absolute; 
