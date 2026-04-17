@@ -17,7 +17,7 @@ ADMIN_PASSWORD = "moon"
 
 db.init_app(app)
 
-# Database table banane ke liye (Drop all hata diya hai ab)
+# Database table sync
 with app.app_context():
     db.create_all()
 
@@ -39,29 +39,29 @@ def index():
 @app.route('/upload', methods=['GET', 'POST'])
 def upload():
     if request.method == 'POST':
-        # YAHAN DEKHO: admin_password naam ka data fetch ho raha hai
+        # Admin Password Check
         entered_pass = request.form.get('admin_password')
-        
         if str(entered_pass) != ADMIN_PASSWORD:
-            return f"❌ Access Denied: Password '{entered_pass}' galat hai!", 403
+            return f"❌ Access Denied: Password galat hai!", 403
 
         yt_link = request.form.get('youtube_link')
+        custom_title = request.form.get('custom_title') # Jo tu khud likhega
         v_id = get_video_id(yt_link)
         
-        if v_id:
+        if v_id and custom_title:
             try:
-                response = requests.get(f"https://noembed.com/embed?url=https://www.youtube.com/watch?v={v_id}")
-                data = response.json()
-                title = data.get('title', 'Moonlight Studio Mix')
+                # Thumbnail automatic fetch hoga lekin Title tera wala use hoga
                 thumb = f"https://img.youtube.com/vi/{v_id}/maxresdefault.jpg"
                 
-                new_song = Song(title=title, video_id=v_id, thumbnail=thumb)
+                new_song = Song(title=custom_title, video_id=v_id, thumbnail=thumb)
                 db.session.add(new_song)
                 db.session.commit()
                 return redirect(url_for('index'))
             except Exception as e:
                 db.session.rollback()
                 return f"Upload Error: {e}", 500
+        else:
+            return "❌ Error: Title aur Link dono bharna zaroori hai!", 400
                 
     return render_template('upload.html')
 
