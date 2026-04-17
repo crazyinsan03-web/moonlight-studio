@@ -2,3 +2,5 @@ flask
 flask-sqlalchemy
 cloudinary
 gunicorn
+psycopg2-binary
+requests
