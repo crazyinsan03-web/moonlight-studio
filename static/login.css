@@ -1,0 +1,95 @@
+:root {
+    --bg-black: #090909;
+    --card-bg: rgba(255, 255, 255, 0.05);
+    --moon-glow: #00d2ff;
+    --text-white: #ffffff;
+    --text-grey: #b3b3b3;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background-color: var(--bg-black);
+    color: var(--text-white);
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+/* Background Animation */
+.background-glow {
+    position: absolute;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(0, 210, 255, 0.2) 0%, transparent 70%);
+    top: 20%;
+    left: 10%;
+    filter: blur(50px);
+    z-index: -1;
+}
+
+.glass-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 40px;
+    border-radius: 24px;
+    width: 320px;
+    text-align: center;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+}
+
+.logo-section h1 { margin: 10px 0 5px; font-size: 28px; letter-spacing: 1px; }
+.logo-section p { color: var(--text-grey); font-size: 14px; margin-bottom: 30px; }
+.moon-icon { font-size: 40px; }
+
+.input-group {
+    position: relative;
+    margin-bottom: 15px;
+}
+
+.input-group i {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-grey);
+}
+
+.input-group input {
+    width: 80%;
+    padding: 12px 15px 12px 45px;
+    background: rgba(255, 255, 255, 0.08);
+    border: none;
+    border-radius: 12px;
+    color: white;
+    outline: none;
+    transition: 0.3s;
+}
+
+.input-group input:focus {
+    background: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 0 10px rgba(0, 210, 255, 0.3);
+}
+
+.main-btn {
+    width: 100%;
+    padding: 12px;
+    background: linear-gradient(45deg, #00d2ff, #3a7bd5);
+    border: none;
+    border-radius: 12px;
+    color: white;
+    font-weight: bold;
+    font-size: 16px;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: 0.3s;
+}
+
+.main-btn:hover { transform: translateY(-2px); opacity: 0.9; }
+
+.switch-text { font-size: 13px; color: var(--text-grey); margin-top: 20px; }
+.switch-text a { color: var(--moon-glow); text-decoration: none; font-weight: bold; }
