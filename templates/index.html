@@ -9,8 +9,18 @@
 </head>
 <body>
 
+<div id="welcome-section" style="padding: 20px; color: white;"></div>
+
+
+
+
     <div class="spotify-header">
-        <h2 class="greeting">Good evening</h2>
+        <h2 class="greeting">MOONLIGHT STUDIO</h2>
+
+        
+    
+   
+</div>
         <div class="search-pill">
             <span class="search-icon">🔍</span>
             <input type="text" id="searchInput" placeholder="What do you want to listen to?" onkeyup="filterSongs()">
@@ -24,71 +34,189 @@
     </div>
 
     <div class="spotify-grid" id="songsGrid">
-        {% for song in songs %}
-        <div class="sp-card-wrapper" style="display: block;">
-            <a href="/player/{{ song[0] }}" style="text-decoration: none; color: inherit;">
-                <div class="sp-card">
-                    <div class="sp-thumb-box">
-                        <img src="https://img.youtube.com/vi/{{ song[2] }}/mqdefault.jpg" class="sp-img">
-                        <div class="sp-play-btn">
-                            <span class="play-arrow">▶</span>
-                        </div>
-                    </div>
-                  <div class="sp-info">
-    <p class="sp-title">{{ song[1] }}</p>
-    <div class="sp-meta-row" style="display: flex; justify-content: space-between; align-items: center;">
-        <p class="sp-artist">Moonlight Original • {{ song[3] }}</p>
+       {% for song in songs %}
+<div class="sp-card-wrapper" style="display: block;">
+    <a href="/player/{{ song[0] }}" 
+       onclick="addToRecent('{{ song[0] }}', '{{ song[1] }}', 'https://img.youtube.com/vi/{{ song[2] }}/mqdefault.jpg')" 
+       style="text-decoration: none; color: inherit;">
         
-        <div class="sp-likes-badge" style="color: var(--sp-green); font-size: 12px; font-weight: bold; display: flex; align-items: center; gap: 4px;">
-            <i class="material-icons" style="font-size: 14px;">favorite</i>
-            <span>{{ song[4] if song[4] else 0 }}</span>
+        <div class="sp-card">
+            <div class="sp-thumb-box">
+                <img src="https://img.youtube.com/vi/{{ song[2] }}/mqdefault.jpg" class="sp-img">
+                <div class="sp-play-btn">
+                    <span class="play-arrow">▶</span>
+                </div>
+            </div>
+            <div class="sp-info">
+                <p class="sp-title">{{ song[1] }}</p>
+                <div class="sp-meta-row" style="display: flex; justify-content: space-between; align-items: center;">
+                    <p class="sp-artist">Moonlight Original • {{ song[3] }}</p>
+                    <div class="sp-likes-badge" style="color: #1DB954; font-size: 12px; font-weight: bold; display: flex; align-items: center; gap: 4px;">
+                        <i class="material-icons" style="font-size: 14px;">favorite</i>
+                        <span>{{ song[4] if song[4] else 0 }}</span>
+                    </div>
+                </div>
+            </div>
         </div>
+    </a>
+</div>
+{% endfor %}
+    </div>
+
+   <script>
+// 1. App khulte hi check karo
+document.addEventListener('DOMContentLoaded', () => {
+    const isLoggedIn = localStorage.getItem('isLoggedIn');
+    if (isLoggedIn !== 'true') {
+        window.location.href = "/login-page"; 
+    } else {
+        // Agar logged in hai toh uska naam dikhao
+        const userName = localStorage.getItem('moonlight_user_name');
+        document.getElementById('welcome-section').innerHTML = `<h1>Welcome, ${userName}! 🌙</h1>`;
+    }
+});document.addEventListener('DOMContentLoaded', () => {
+    const isLoggedIn = localStorage.getItem('isLoggedIn');
+    if (isLoggedIn !== 'true') {
+        window.location.href = "/login-page"; 
+    } else {
+        // Agar logged in hai toh uska naam dikhao
+        const userName = localStorage.getItem('moonlight_user_name');
+        document.getElementById('welcome-section').innerHTML = `<h1>Welcome, ${userName}! 🌙</h1>`;
+    }
+});
+// 2. Search aur Secret Admin Door
+function filterSongs() {
+    let inputField = document.getElementById('searchInput');
+    let inputVal = inputField.value; 
+    let filter = inputVal.toLowerCase();
+    let songWrappers = document.getElementsByClassName('sp-card-wrapper');
+
+    if (inputVal === "MOON") {
+        window.location.href = "/admin";
+        return;
+    }
+
+    for (let i = 0; i < songWrappers.length; i++) {
+        let title = songWrappers[i].querySelector('.sp-title').innerText.toLowerCase();
+        let category = songWrappers[i].querySelector('.sp-artist').innerText.toLowerCase();
+        
+        if (title.includes(filter) || category.includes(filter)) {
+            songWrappers[i].style.display = "block";
+        } else {
+            songWrappers[i].style.display = "none";
+        }
+    }
+}
+
+// 3. Filter chips logic
+const chips = document.querySelectorAll('.chip');
+chips.forEach(chip => {
+    chip.addEventListener('click', () => {
+        chips.forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+        document.getElementById('searchInput').value = chip.innerText === 'Music' ? '' : chip.innerText;
+        filterSongs();
+    });
+});
+
+// 4. Sabse Important: History Save Karne wala Function
+async function addToRecent(id, title, thumb) {
+    const phone = localStorage.getItem('user_phone');
+    
+    // 1. Local storage mein purani tarah save rakho (Fast loading ke liye)
+    let recent = JSON.parse(localStorage.getItem('moonlight_recent') || "[]");
+    recent = recent.filter(s => s.id !== id);
+    recent.unshift({ id, title, thumb });
+    if (recent.length > 12) recent.pop();
+    localStorage.setItem('moonlight_recent', JSON.stringify(recent));
+
+    // 2. Neon DB mein bhi bhej do (Permanent storage)
+    if (phone) {
+        await fetch('/add-history', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ phone: phone, song_id: id })
+        });
+    }
+}
+    // Purana same gaana hatao
+    recent = recent.filter(s => s.id !== id);
+    
+    // Naya data object format mein - Ensure thumb is the full URL
+    recent.unshift({ 
+        id: id, 
+        title: title, 
+        thumb: thumb 
+    });
+    
+    if (recent.length > 12) recent.pop();
+    
+    localStorage.setItem('moonlight_recent', JSON.stringify(recent));
+    console.log("Saved to History:", title, thumb); // Debugging ke liye
+}
+    // Limit 12 songs
+    if (recent.length > 12) recent.pop();
+    
+    localStorage.setItem('moonlight_recent', JSON.stringify(recent));
+}
+
+// 5. Profile Toggle aur Logout
+function toggleProfile() {
+    const modal = document.getElementById('profile-popup');
+    const name = localStorage.getItem('moonlight_user_name') || "Moonlight User";
+    const phone = localStorage.getItem('user_phone') || "Unknown";
+
+    // Agar elements exist karte hain tabhi text change karo
+    const nameEl = document.getElementById('profile-name');
+    const phoneEl = document.getElementById('profile-phone');
+    const avatarEl = document.getElementById('avatar-initial');
+
+    if(nameEl) nameEl.innerText = name;
+    if(phoneEl) phoneEl.innerText = phone;
+    if(avatarEl) avatarEl.innerText = name[0].toUpperCase();
+
+    modal.style.display = (modal.style.display === 'block') ? 'none' : 'block';
+}
+function logout() {
+    localStorage.clear();
+    window.location.href = "/login-page";
+}
+
+window.onclick = function(event) {
+    const modal = document.getElementById('profile-popup');
+    if (event.target == modal) modal.style.display = "none";
+}
+</script>
+<div class="bottom-nav">
+    <div class="nav-item" onclick="window.location.href='/'">
+        <i class="material-icons">home</i>
+        <span>Home</span>
+    </div>
+    
+    <div class="nav-item" id="recentsBtn" onclick="window.location.href='/recents'">
+    <i class="material-icons">history</i>
+    <span>Recents</span>
+</div>
+
+    <div class="nav-item" id="profileBtn" onclick="toggleProfile()">
+        <i class="material-icons">person_outline</i>
+        <span>Profile</span>
     </div>
 </div>
-                </div>
-            </a>
+
+<div id="profile-popup" class="profile-modal">
+    <div class="profile-content">
+        <span class="close-profile" onclick="toggleProfile()">&times;</span>
+        <div class="profile-header">
+            <div class="avatar-large" id="avatar-initial">A</div>
+            <h2 id="profile-name">Anish</h2>
+            <p id="profile-phone">91XXXXXX</p>
         </div>
-        {% endfor %}
+        <button class="logout-btn" onclick="logout()">Logout</button>
     </div>
+</div>
 
-    <script>
-        function filterSongs() {
-            let inputField = document.getElementById('searchInput');
-            let inputVal = inputField.value; // Real value for Secret Code
-            let filter = inputVal.toLowerCase();
-            let songWrappers = document.getElementsByClassName('sp-card-wrapper');
 
-            // --- SECRET ADMIN DOOR ---
-            if (inputVal === "MOON") {
-                window.location.href = "/admin";
-                return;
-            }
 
-            // Normal Search Logic
-            for (let i = 0; i < songWrappers.length; i++) {
-                let title = songWrappers[i].querySelector('.sp-title').innerText.toLowerCase();
-                let category = songWrappers[i].querySelector('.sp-artist').innerText.toLowerCase();
-                
-                if (title.includes(filter) || category.includes(filter)) {
-                    songWrappers[i].style.display = "block";
-                } else {
-                    songWrappers[i].style.display = "none";
-                }
-            }
-        }
-
-        // Filter chips logic (Basic UI highlight)
-        const chips = document.querySelectorAll('.chip');
-        chips.forEach(chip => {
-            chip.addEventListener('click', () => {
-                chips.forEach(c => c.classList.remove('active'));
-                chip.classList.add('active');
-                
-                // Chip se bhi search filter trigger karo
-                document.getElementById('searchInput').value = chip.innerText === 'Music' ? '' : chip.innerText;
-                filterSongs();
-            });
-        });
-    </script>
 </body>
 </html>
