@@ -189,6 +189,32 @@
             goToNext();
         }
     }
+
+
+// Player load hote hi gaana history mein save karo
+document.addEventListener('DOMContentLoaded', () => {
+    const songId = "{{ song[0] }}";
+    const songTitle = "{{ song[1] }}";
+    const songThumb = "https://img.youtube.com/vi/{{ song[2] }}/mqdefault.jpg";
+
+    let recent = JSON.parse(localStorage.getItem('moonlight_recent') || "[]");
+
+    // Purani entry hatao agar wahi gaana dobara suna hai
+    recent = recent.filter(s => s.id !== songId);
+
+    // Naya gaana top par daalo
+    recent.unshift({ id: songId, title: songTitle, thumb: songThumb });
+
+    // Sirf top 10 gaane rakho
+    if (recent.length > 10) recent.pop();
+
+    localStorage.setItem('moonlight_recent', JSON.stringify(recent));
+    console.log("Moonlight: History Updated! 🌙");
+});
+
+
+
+
 </script>
 </body>
 </html>
