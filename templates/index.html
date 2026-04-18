@@ -63,28 +63,36 @@
 {% endfor %}
     </div>
 
-   <script>
-// 1. App khulte hi check karo
+  <script>
+// 1. Instant Redirect (Sabse pehle check karo)
+(function() {
+    const isLoggedIn = localStorage.getItem('isLoggedIn');
+    if (isLoggedIn !== 'true') {
+        window.location.href = "/login-page";
+    }
+})();
+
 document.addEventListener('DOMContentLoaded', () => {
-    const isLoggedIn = localStorage.getItem('isLoggedIn');
-    if (isLoggedIn !== 'true') {
-        window.location.href = "/login-page"; 
-    } else {
-        // Agar logged in hai toh uska naam dikhao
-        const userName = localStorage.getItem('moonlight_user_name');
-        document.getElementById('welcome-section').innerHTML = `<h1>Welcome, ${userName}! 🌙</h1>`;
+    // Welcome Name display logic
+    const userName = localStorage.getItem('moonlight_user_name') || "User";
+    const welcomeDiv = document.getElementById('welcome-section');
+    if(welcomeDiv) {
+        welcomeDiv.innerHTML = `<h1>Welcome, ${userName}! 🌙</h1>`;
     }
-});document.addEventListener('DOMContentLoaded', () => {
-    const isLoggedIn = localStorage.getItem('isLoggedIn');
-    if (isLoggedIn !== 'true') {
-        window.location.href = "/login-page"; 
-    } else {
-        // Agar logged in hai toh uska naam dikhao
-        const userName = localStorage.getItem('moonlight_user_name');
-        document.getElementById('welcome-section').innerHTML = `<h1>Welcome, ${userName}! 🌙</h1>`;
-    }
+
+    // Filter chips setup
+    const chips = document.querySelectorAll('.chip');
+    chips.forEach(chip => {
+        chip.addEventListener('click', () => {
+            chips.forEach(c => c.classList.remove('active'));
+            chip.classList.add('active');
+            document.getElementById('searchInput').value = chip.innerText === 'Music' ? '' : chip.innerText;
+            filterSongs();
+        });
+    });
 });
-// 2. Search aur Secret Admin Door
+
+// 2. Search & Admin Secret Door
 function filterSongs() {
     let inputField = document.getElementById('searchInput');
     let inputVal = inputField.value; 
@@ -108,75 +116,42 @@ function filterSongs() {
     }
 }
 
-// 3. Filter chips logic
-const chips = document.querySelectorAll('.chip');
-chips.forEach(chip => {
-    chip.addEventListener('click', () => {
-        chips.forEach(c => c.classList.remove('active'));
-        chip.classList.add('active');
-        document.getElementById('searchInput').value = chip.innerText === 'Music' ? '' : chip.innerText;
-        filterSongs();
-    });
-});
-
-// 4. Sabse Important: History Save Karne wala Function
+// 3. History Save (Local + Neon DB)
 async function addToRecent(id, title, thumb) {
     const phone = localStorage.getItem('user_phone');
     
-    // 1. Local storage mein purani tarah save rakho (Fast loading ke liye)
+    // Local Storage save
     let recent = JSON.parse(localStorage.getItem('moonlight_recent') || "[]");
     recent = recent.filter(s => s.id !== id);
     recent.unshift({ id, title, thumb });
     if (recent.length > 12) recent.pop();
     localStorage.setItem('moonlight_recent', JSON.stringify(recent));
 
-    // 2. Neon DB mein bhi bhej do (Permanent storage)
+    // Neon DB save
     if (phone) {
-        await fetch('/add-history', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ phone: phone, song_id: id })
-        });
+        try {
+            await fetch('/add-history', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ phone: phone, song_id: id })
+            });
+        } catch(e) { console.log("DB History Error"); }
     }
 }
-    // Purana same gaana hatao
-    recent = recent.filter(s => s.id !== id);
-    
-    // Naya data object format mein - Ensure thumb is the full URL
-    recent.unshift({ 
-        id: id, 
-        title: title, 
-        thumb: thumb 
-    });
-    
-    if (recent.length > 12) recent.pop();
-    
-    localStorage.setItem('moonlight_recent', JSON.stringify(recent));
-    console.log("Saved to History:", title, thumb); // Debugging ke liye
-}
-    // Limit 12 songs
-    if (recent.length > 12) recent.pop();
-    
-    localStorage.setItem('moonlight_recent', JSON.stringify(recent));
-}
 
-// 5. Profile Toggle aur Logout
+// 4. Profile & Logout
 function toggleProfile() {
     const modal = document.getElementById('profile-popup');
     const name = localStorage.getItem('moonlight_user_name') || "Moonlight User";
     const phone = localStorage.getItem('user_phone') || "Unknown";
 
-    // Agar elements exist karte hain tabhi text change karo
-    const nameEl = document.getElementById('profile-name');
-    const phoneEl = document.getElementById('profile-phone');
-    const avatarEl = document.getElementById('avatar-initial');
-
-    if(nameEl) nameEl.innerText = name;
-    if(phoneEl) phoneEl.innerText = phone;
-    if(avatarEl) avatarEl.innerText = name[0].toUpperCase();
+    document.getElementById('profile-name').innerText = name;
+    document.getElementById('profile-phone').innerText = phone;
+    document.getElementById('avatar-initial').innerText = name[0].toUpperCase();
 
     modal.style.display = (modal.style.display === 'block') ? 'none' : 'block';
 }
+
 function logout() {
     localStorage.clear();
     window.location.href = "/login-page";
