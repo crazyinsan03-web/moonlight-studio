@@ -1,106 +1,136 @@
-import os
-import re
 import psycopg2
-from flask import Flask, render_template, request, redirect, url_for, jsonify
+from flask import Flask, render_template, request, jsonify
 
 app = Flask(__name__)
 
-import os
+# --- CONFIGURATION ---
+# Tera Neon DB URL ekdum sahi hai
+DB_URL = "postgresql://neondb_owner:npg_M7CR8fwVjeNY@ep-blue-union-an1h5dmf-pooler.c-6.us-east-1.aws.neon.tech/neondb?sslmode=require"
 
-# TERA NEON CONNECTION (Ab ye Render ke Environment se URL uthayega)
-DB_URL = os.environ.get('DATABASE_URL')
 def get_db_connection():
-    conn = psycopg2.connect(DB_URL)
-    return conn
+    return psycopg2.connect(DB_URL)
 
-def extract_video_id(url):
-    # YouTube link se Video ID nikalne ka logic
-    pattern = r"(?:v=|\/)([0-9A-Za-z_-]{11}).*"
-    video_id = re.search(pattern, url)
-    if video_id:
-        return video_id.group(1)
-    return None
+# --- HTML ROUTES ---
 
-# --- MAIN PAGE ---
 @app.route('/')
 def index():
-    conn = get_db_connection()
-    cur = conn.cursor()
-    # Saare gaane load karo (Naya pehle)
-    cur.execute('SELECT * FROM songs ORDER BY id DESC')
-    songs = cur.fetchall()
-    cur.close()
-    conn.close()
+    songs = []
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+        # Database se saare gaane uthao
+        cur.execute('SELECT * FROM songs ORDER BY id DESC')
+        songs = cur.fetchall()
+        cur.close()
+        conn.close()
+    except Exception as e:
+        print(f"Database error: {e}")
     return render_template('index.html', songs=songs)
 
-# --- PLAYER PAGE ---
+@app.route('/recents')
+def recents_page():
+    return render_template('recents.html')
+
+@app.route('/login-page')
+def login_page():
+    return render_template('login.html')
+
 @app.route('/player/<int:song_id>')
 def player(song_id):
-    conn = get_db_connection()
-    cur = conn.cursor()
-    # Database se current song fetch karo
-    cur.execute('SELECT * FROM songs WHERE id = %s', (song_id,))
-    song = cur.fetchone()
-    
-    # Next song ka logic
-    cur.execute('SELECT id FROM songs WHERE id < %s ORDER BY id DESC LIMIT 1', (song_id,))
-    next_song = cur.fetchone()
-    
-    cur.close()
-    conn.close()
-    
-    if song:
-        return render_template('player.html', song=song, next_id=next_song[0] if next_song else None)
-    return redirect(url_for('index'))
-
-# --- LIKE SYSTEM (New Feature) ---
-@app.route('/like/<int:song_id>', methods=['POST'])
-def like_song(song_id):
-    conn = get_db_connection()
-    cur = conn.cursor()
     try:
-        # Database mein likes +1 karo
-        cur.execute('UPDATE songs SET likes = likes + 1 WHERE id = %s', (song_id,))
-        conn.commit()
-        success = True
-    except:
-        success = False
-    cur.close()
-    conn.close()
-    return jsonify({"success": success})
-
-# --- ADMIN PANEL ---
-@app.route('/admin', methods=['GET', 'POST'])
-def admin():
-    conn = get_db_connection()
-    cur = conn.cursor()
-
-    if request.method == 'POST':
-        # Agar DELETE button dabaya
-        if 'delete_id' in request.form:
-            song_id = request.form['delete_id']
-            cur.execute('DELETE FROM songs WHERE id = %s', (song_id,))
-            conn.commit()
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute('SELECT * FROM songs WHERE id = %s', (song_id,))
+        song = cur.fetchone()
         
-        # Agar Naya Gaana add kiya
-        elif 'title' in request.form:
-            title = request.form['title']
-            link = request.form['link']
-            category = request.form.get('category', 'General')
-            yt_id = extract_video_id(link)
-            if yt_id:
-                # yt_id, title aur category ke saath 'likes' default 0 jayega
-                cur.execute('INSERT INTO songs (title, yt_id, category, likes) VALUES (%s, %s, %s, 0)',
-                            (title, yt_id, category))
-                conn.commit()
+        cur.execute('SELECT id FROM songs WHERE id > %s ORDER BY id ASC LIMIT 1', (song_id,))
+        next_song = cur.fetchone()
+        next_id = next_song[0] if next_song else None
+        
+        cur.close()
+        conn.close()
+        
+        if song:
+            return render_template('player.html', song=song, next_id=next_id)
+        return "Bhai, gaana nahi mila!", 404
+    except Exception as e:
+        return f"Error: {e}"
 
-    # Admin page ki list refresh karo
-    cur.execute('SELECT * FROM songs ORDER BY id DESC')
-    songs = cur.fetchall()
-    cur.close()
-    conn.close()
-    return render_template('admin.html', songs=songs)
+# --- API ROUTES (NEON DATABASE) ---
+
+
+@app.route('/add-history', methods=['POST'])
+def add_history():
+    data = request.json
+    phone = data.get('phone')
+    song_id = data.get('song_id')
+
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+        # Nayi history insert karo
+        cur.execute('INSERT INTO history (user_phone, song_id) VALUES (%s, %s)', (phone, song_id))
+        conn.commit()
+        cur.close()
+        conn.close()
+        return jsonify({"status": "success"})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)})
+
+
+
+
+
+
+@app.route('/signup', methods=['POST'])
+def signup():
+    data = request.json
+    name = data.get('name')
+    phone = data.get('phone')
+    password = data.get('password')
+
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+        
+        # Check if user already exists
+        cur.execute('SELECT phone FROM users WHERE phone = %s', (phone,))
+        if cur.fetchone():
+            cur.close()
+            conn.close()
+            return jsonify({"status": "error", "message": "Number pehle se registered hai!"})
+
+        # Naya user insert karo
+        cur.execute('INSERT INTO users (name, phone, password) VALUES (%s, %s, %s)', (name, phone, password))
+        conn.commit()
+        
+        cur.close()
+        conn.close()
+        return jsonify({"status": "success", "user_name": name})
+    except Exception as e:
+        return jsonify({"status": "error", "message": "Signup failed: " + str(e)})
+
+@app.route('/login', methods=['POST'])
+def login():
+    data = request.json
+    phone = data.get('phone')
+    password = data.get('password')
+
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute('SELECT name FROM users WHERE phone = %s AND password = %s', (phone, password))
+        user = cur.fetchone()
+        
+        cur.close()
+        conn.close()
+
+        if user:
+            return jsonify({"status": "success", "user_name": user[0]})
+        else:
+            return jsonify({"status": "error", "message": "Phone number ya password galat hai!"})
+    except Exception as e:
+        return jsonify({"status": "error", "message": "Login failed: " + str(e)})
 
 if __name__ == '__main__':
-    # Server start karne ka command
     app.run(debug=True)
