@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recents | Moonlight</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        /* Header and Layout Fix */
+        .recents-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            position: sticky;
+            top: 0;
+            background: #000;
+            z-index: 100;
+        }
+        
+        .clear-btn {
+            background: rgba(255, 75, 43, 0.1);
+            border: 1px solid #ff4b2b;
+            color: #ff4b2b;
+            padding: 6px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .clear-btn:active {
+            transform: scale(0.9);
+        }
+
+        /* Grid for Songs */
+        .recents-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            padding: 15px;
+        }
+
+        .empty-state {
+            text-align: center;
+            margin-top: 100px;
+            color: #b3b3b3;
+        }
+    </style>
+</head>
+<body style="background: #000; color: white; padding-bottom: 90px; font-family: 'Segoe UI', sans-serif;">
+
+    <div class="recents-header">
+        <button onclick="window.location.href='/'" style="background:none; border:none; color:white; cursor:pointer; padding: 0; display: flex; align-items: center;">
+            <i class="material-icons" style="font-size: 30px;">arrow_back</i>
+        </button>
+
+        <button class="clear-btn" onclick="clearRecents()">
+            Clear All
+        </button>
+    </div>
+
+    <div style="padding: 10px 20px;">
+        <h1 style="margin: 0; font-size: 28px; font-weight: 800;">Recently Played</h1>
+    </div>
+
+    <div id="recents-container" class="recents-grid">
+        </div>
+
+    <div class="bottom-nav">
+        <div class="nav-item" onclick="window.location.href='/'">
+            <i class="material-icons">home</i>
+            <span>Home</span>
+        </div>
+        <div class="nav-item active" onclick="window.location.href='/recents'">
+            <i class="material-icons">history</i>
+            <span>Recents</span>
+        </div>
+        <div class="nav-item" onclick="toggleProfile()">
+            <i class="material-icons">person_outline</i>
+            <span>Profile</span>
+        </div>
+    </div>
+
+    <script>
+        function loadRecents() {
+            const recent = JSON.parse(localStorage.getItem('moonlight_recent') || "[]");
+            const container = document.getElementById('recents-container');
+
+            if (recent.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="material-icons" style="font-size: 50px; color: #333;">history</i>
+                        <p>Bhai, abhi tak kuch nahi suna tune!</p>
+                    </div>`;
+                return;
+            }
+
+          // recents.html ka script wala part aise hona chahiye:
+container.innerHTML = recent.map(song => `
+    <div class="sp-card" onclick="window.location.href='/player/${song.id}'" style="cursor: pointer;">
+        <div class="sp-thumb-box">
+           <img src="${song.thumb}" class="sp-img" style="border-radius: 12px; width: 100%; height: 120px; object-fit: cover; display: block;" onerror="this.src='https://img.youtube.com/vi/${song.id}/mqdefault.jpg'">
+        <div class="sp-info" style="padding: 10px 5px;">
+            <p class="sp-title" style="margin: 0; font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${song.title}</p>
+            <p class="sp-artist" style="margin: 3px 0 0; font-size: 12px; color: #b3b3b3;">Moonlight Original</p>
+        </div>
+    </div>
+`).join('');
+        }
+
+        function clearRecents() {
+            if(confirm("Saari history delete karu?")) {
+                localStorage.removeItem('moonlight_recent');
+                loadRecents();
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', loadRecents);
+
+
+
+
+
+     
+    </script>
+</body>
+</html>
