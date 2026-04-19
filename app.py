@@ -80,8 +80,7 @@ def player(song_id):
     
     if song:
         return render_template('player.html', song=song, next_id=next_id)
-    return "Song not found", 404"
-
+   return "Song not found", 404
 # --- API ROUTES (NEON DATABASE) ---
 
 
