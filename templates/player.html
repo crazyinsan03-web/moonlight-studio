@@ -10,9 +10,7 @@
 <body class="player-body">
 
     <div class="player-header">
-        <button class="back-btn" onclick="window.location.href='/'">
-            <i class="material-icons">expand_more</i>
-        </button>
+        <button class="back-btn" onclick="window.location.href='/'"><i class="material-icons">expand_more</i></button>
         <div class="playing-from">
             <p class="small-text">PLAYING FROM CATEGORY</p>
             <p class="cat-name">{{ song[3] }}</p>
@@ -21,152 +19,74 @@
     </div>
 
     <div class="player-main-content">
-        <audio id="mainAudio" src="{{ song[9] }}" preload="auto" playsinline autoplay></audio>
+        <audio id="mainAudio" src="{{ song[4] }}" preload="auto" playsinline autoplay></audio>
 
-       <div class="visualizer-container" style="position: relative; width: 100%; display: flex; flex-direction: column; align-items: center;">
-    
-    <div class="album-art-wrapper" style="width: 280px; height: 280px; margin-bottom: 30px;">
-        <img src="https://img.youtube.com/vi/{{ song[2] }}/maxresdefault.jpg" 
-             style="width: 100%; height: 100%; border-radius: 25px; object-fit: cover; box-shadow: 0 15px 35px rgba(0,0,0,0.6);"
-             onerror="this.src='https://img.youtube.com/vi/{{ song[2] }}/0.jpg'">
-    </div>
-
-    <div class="playing-waves" id="waveContainer">
-        <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
-    </div>
-</div>
+        <div class="visualizer-container" style="display:flex; flex-direction:column; align-items:center;">
+            <img src="https://img.youtube.com/vi/{{ song[2] }}/maxresdefault.jpg" class="player-album-art" style="width:80%; border-radius:20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+            <div class="playing-waves" id="waveContainer" style="margin-top:20px;">
+                <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+            </div>
+        </div>
 
         <div class="song-meta">
             <div class="title-wrap">
                 <h2 class="player-title">{{ song[1] }}</h2>
                 <p class="artist-name">Moonlight Original</p>
             </div>
-            <button class="heart-btn" id="likeBtn" onclick="sendLike({{ song[0] }})">
-                <i class="material-icons" id="heartIcon">favorite_border</i>
-            </button>
+            <button class="heart-btn" id="likeBtn"><i class="material-icons">favorite_border</i></button>
         </div>
 
         <div class="progress-container">
-            <div class="time-bar" id="progressBar" style="cursor: pointer; background: rgba(255,255,255,0.1); height: 5px; border-radius: 10px; position: relative;">
-                <div class="progress-fill" id="seekProgress" style="width: 0%; height: 100%; background: #fff; border-radius: 10px; transition: width 0.1s linear;"></div>
-            </div>
-            <div class="time-stamps" style="display: flex; justify-content: space-between; margin-top: 8px; font-size: 12px; color: #b3b3b3;">
-                <span id="currentTime">0:00</span>
-                <span id="totalDuration">0:00</span>
-            </div>
+            <div class="time-bar" id="progressBar" style="cursor:pointer;"><div class="progress-fill" id="seekProgress"></div></div>
+            <div class="time-stamps"><span id="currentTime">0:00</span><span id="totalDuration">0:00</span></div>
         </div>
 
         <div class="main-controls">
             <button class="ctrl-btn"><i class="material-icons">shuffle</i></button>
             <button class="ctrl-btn" onclick="window.history.back()"><i class="material-icons">skip_previous</i></button>
-            
-            <button class="play-pause-circle" onclick="togglePlay()" style="background: #fff; color: #000; border-radius: 50%; width: 65px; height: 65px; display: flex; align-items: center; justify-content: center; border: none;">
-                <i class="material-icons" id="playIcon" style="font-size: 40px;">pause</i>
-            </button>
-
-            <button class="ctrl-btn" onclick="goToNext()"><i class="material-icons">skip_next</i></button>
+            <button class="play-pause-circle" onclick="togglePlay()"><i class="material-icons" id="playIcon">pause</i></button>
+            <button class="ctrl-btn" onclick="window.location.href='/player/{{ next_id }}'"><i class="material-icons">skip_next</i></button>
             <button class="ctrl-btn"><i class="material-icons">repeat</i></button>
         </div>
     </div>
 
     <script>
-    const audio = document.getElementById('mainAudio');
-    const playIcon = document.getElementById('playIcon');
-    const waves = document.getElementById('waveContainer');
-    const seekProgress = document.getElementById('seekProgress');
+        const audio = document.getElementById('mainAudio');
+        const playIcon = document.getElementById('playIcon');
+        const waves = document.getElementById('waveContainer');
 
-    // 1. Play/Pause Functionality
-    function togglePlay() {
-        if (audio.paused) {
-            audio.play();
-            playIcon.innerText = "pause";
-            waves.classList.remove('paused-waves');
-        } else {
-            audio.pause();
-            playIcon.innerText = "play_arrow";
-            waves.classList.add('paused-waves');
+        function togglePlay() {
+            if (audio.paused) {
+                audio.play();
+                playIcon.innerText = "pause";
+                waves.classList.remove('paused-waves');
+            } else {
+                audio.pause();
+                playIcon.innerText = "play_arrow";
+                waves.classList.add('paused-waves');
+            }
         }
-    }
 
-    // 2. Time Update & Progress Bar
-    audio.ontimeupdate = () => {
-        if (audio.duration) {
-            const perc = (audio.currentTime / audio.duration) * 100;
-            seekProgress.style.width = perc + "%";
-            document.getElementById('currentTime').innerText = formatTime(audio.currentTime);
-            document.getElementById('totalDuration').innerText = formatTime(audio.duration);
+        audio.ontimeupdate = () => {
+            if (audio.duration) {
+                const perc = (audio.currentTime / audio.duration) * 100;
+                document.getElementById('seekProgress').style.width = perc + "%";
+                document.getElementById('currentTime').innerText = formatTime(audio.currentTime);
+                document.getElementById('totalDuration').innerText = formatTime(audio.duration);
+            }
+        };
+
+        document.getElementById('progressBar').onclick = (e) => {
+            const rect = document.getElementById('progressBar').getBoundingClientRect();
+            audio.currentTime = ((e.clientX - rect.left) / rect.width) * audio.duration;
+        };
+
+        function formatTime(t) {
+            let m = Math.floor(t/60), s = Math.floor(t%60);
+            return m + ":" + (s<10?'0':'') + s;
         }
-    };
 
-    // 3. Click to Seek (Aage-Piche)
-    document.getElementById('progressBar').addEventListener('click', function(e) {
-        const rect = this.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const perc = x / rect.width;
-        audio.currentTime = perc * audio.duration;
-    });
-
-    // 4. Auto Next
-    audio.onended = () => { goToNext(); };
-
-    function formatTime(time) {
-        let min = Math.floor(time / 60);
-        let sec = Math.floor(time % 60);
-        return min + ":" + (sec < 10 ? '0' : '') + sec;
-    }
-
-    function goToNext() {
-        {% if next_id %}
-            window.location.href = "/player/{{ next_id }}";
-        {% else %}
-            window.location.href = "/";
-        {% endif %}
-    }
-
-    // 5. Like Feature
-    function sendLike(songId) {
-        let btn = document.getElementById('likeBtn');
-        let icon = document.getElementById('heartIcon');
-        
-        if (!btn.classList.contains('active')) {
-            btn.classList.add('active');
-            icon.innerText = "favorite";
-            icon.style.color = "#ff4081";
-            
-            fetch(`/like/${songId}`, { method: 'POST' })
-            .then(response => response.json())
-            .then(data => { if(data.success) console.log("Moonlight: Liked! 🌙"); });
-        } else {
-            btn.classList.remove('active');
-            icon.innerText = "favorite_border";
-            icon.style.color = "#fff";
-        }
-    }
-
-    // 6. Background Control (Media Session API)
-   if ('mediaSession' in navigator) {
-    navigator.mediaSession.metadata = new MediaMetadata({
-        title: '{{ song[1] }}',
-        artist: 'Moonlight Studio',
-        artwork: [{ src: 'https://img.youtube.com/vi/{{ song[2] }}/mqdefault.jpg', sizes: '512x512', type: 'image/jpg' }]
-    });
-}
-        navigator.mediaSession.setActionHandler('play', () => { audio.play(); togglePlay(); });
-        navigator.mediaSession.setActionHandler('pause', () => { audio.pause(); togglePlay(); });
-    }
-
-    // 7. Recent History Logic
-    document.addEventListener('DOMContentLoaded', () => {
-        const songId = "{{ song[0] }}";
-        const songTitle = "{{ song[1] }}";
-        const songThumb = "https://img.youtube.com/vi/{{ song[2] }}/mqdefault.jpg";
-
-        let recent = JSON.parse(localStorage.getItem('moonlight_recent') || "[]");
-        recent = recent.filter(s => s.id !== songId);
-        recent.unshift({ id: songId, title: songTitle, thumb: songThumb });
-        if (recent.length > 10) recent.pop();
-        localStorage.setItem('moonlight_recent', JSON.stringify(recent));
-    });
+        audio.onended = () => { window.location.href='/player/{{ next_id }}'; };
     </script>
 </body>
 </html>
