@@ -21,8 +21,7 @@
     <div class="player-main-content">
         {% if source == 'db' %}
             <audio id="mainAudio" src="{{ song[4] }}" preload="auto" playsinline autoplay></audio>
-            <div class="visualizer-container">
-                <img src="https://img.youtube.com/vi/{{ song[2] }}/maxresdefault.jpg" class="player-album-art">
+            
                 <div class="playing-waves" id="waveContainer">
                     <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
                 </div>
