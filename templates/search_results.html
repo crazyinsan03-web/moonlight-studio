@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Results | Moonlight</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        .search-container { padding: 20px; color: white; }
+        .result-source { 
+            font-size: 12px; 
+            color: #00ffcc; 
+            margin-bottom: 20px; 
+            text-transform: uppercase; 
+            letter-spacing: 1px;
+        }
+        .song-list { display: flex; flex-direction: column; gap: 15px; }
+        .song-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 12px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            color: white;
+            transition: 0.3s;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .song-card:active { transform: scale(0.98); background: rgba(0, 255, 204, 0.1); }
+        .song-thumb {
+            width: 60px;
+            height: 60px;
+            border-radius: 8px;
+            margin-right: 15px;
+            object-fit: cover;
+        }
+        .song-info h4 { margin: 0; font-size: 16px; font-weight: 500; }
+        .song-info p { margin: 5px 0 0; font-size: 13px; color: #aaa; }
+        .source-tag {
+            font-size: 10px;
+            background: #00ffcc;
+            color: #000;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-left: 10px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body style="background: #000; margin: 0; font-family: sans-serif;">
+
+    <div class="search-container">
+        <div style="display: flex; align-items: center; margin-bottom: 25px;">
+            <button onclick="window.location.href='/'" style="background:none; border:none; color:white; cursor:pointer;">
+                <i class="material-icons">arrow_back</i>
+            </button>
+            <h2 style="margin-left: 15px;">Search Results</h2>
+        </div>
+
+        <p class="result-source">
+            Showing results from: <b>{% if source == 'db' %}Moonlight Library{% else %}YouTube Global{% endif %}</b>
+        </p>
+
+        <div class="song-list">
+            {% for song in songs %}
+            <a href="/player/{{ song[0] }}?source={{ source }}&title={{ song[1]|urlencode }}" class="song-card">
+                <img src="https://img.youtube.com/vi/{{ song[2] }}/default.jpg" class="song-thumb">
+                <div class="song-info">
+                    <h4>{{ song[1] }}</h4>
+                    <p>{{ song[3] }} <span class="source-tag">{{ source.upper() }}</span></p>
+                </div>
+                <i class="material-icons" style="margin-left: auto; color: #555;">play_arrow</i>
+            </a>
+            {% endfor %}
+        </div>
+
+        {% if not songs %}
+        <div style="text-align: center; margin-top: 50px; color: #555;">
+            <i class="material-icons" style="font-size: 48px;">search_off</i>
+            <p>Kuch nahi mila bhai, try again!</p>
+        </div>
+        {% endif %}
+    </div>
+
+</body>
+</html>
