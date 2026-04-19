@@ -59,57 +59,53 @@
         </div>
     </div>
 
-    <script>
-        const audio = document.getElementById('mainAudio');
-        const playIcon = document.getElementById('playIcon');
-        const waves = document.getElementById('waveContainer');
+   <script>
+    const audio = document.getElementById('mainAudio');
+    const playIcon = document.getElementById('playIcon');
+    const waves = document.getElementById('waveContainer');
 
-        function togglePlay() {
-            // FIX: Agar YouTube mode hai toh audio tag nahi hoga, error se bachne ke liye ye check:
-            if (!audio) {
-                alert("Use YouTube controls to Play/Pause");
-                return;
+    function togglePlay() {
+        // Fix: Pehle check karo ki audio element exist karta hai ya nahi
+        if (!audio) {
+            alert("YouTube Mode: Use Video Controls to Play/Pause");
+            return;
+        }
+        if (audio.paused) {
+            audio.play();
+            playIcon.innerText = "pause";
+            if(waves) waves.classList.remove('paused-waves');
+        } else {
+            audio.pause();
+            playIcon.innerText = "play_arrow";
+            if(waves) waves.classList.add('paused-waves');
+        }
+    }
+
+    // Saare audio events ko 'if (audio)' ke andar wrap karo
+    if (audio) {
+        audio.ontimeupdate = () => {
+            if (audio.duration) {
+                const perc = (audio.currentTime / audio.duration) * 100;
+                document.getElementById('seekProgress').style.width = perc + "%";
+                document.getElementById('currentTime').innerText = formatTime(audio.currentTime);
+                document.getElementById('totalDuration').innerText = formatTime(audio.duration);
             }
-            if (audio.paused) {
-                audio.play();
-                playIcon.innerText = "pause";
-                if(waves) waves.classList.remove('paused-waves');
-            } else {
-                audio.pause();
-                playIcon.innerText = "play_arrow";
-                if(waves) waves.classList.add('paused-waves');
-            }
-        }
+        };
 
-        // Audio controls sirf tabhi chalenge jab MP3 mode ho
-        if (audio) {
-            audio.ontimeupdate = () => {
-                if (audio.duration) {
-                    const perc = (audio.currentTime / audio.duration) * 100;
-                    document.getElementById('seekProgress').style.width = perc + "%";
-                    document.getElementById('currentTime').innerText = formatTime(audio.currentTime);
-                    document.getElementById('totalDuration').innerText = formatTime(audio.duration);
-                }
-            };
+        document.getElementById('progressBar').onclick = (e) => {
+            const rect = document.getElementById('progressBar').getBoundingClientRect();
+            audio.currentTime = ((e.clientX - rect.left) / rect.width) * audio.duration;
+        };
 
-            document.getElementById('progressBar').onclick = (e) => {
-                const rect = document.getElementById('progressBar').getBoundingClientRect();
-                audio.currentTime = ((e.clientX - rect.left) / rect.width) * audio.duration;
-            };
+        audio.onended = () => { 
+            window.location.href='/player/{{ next_id }}?source={{ source }}'; 
+        };
+    }
 
-            audio.onended = () => { 
-                {% if next_id %}
-                window.location.href='/player/{{ next_id }}?source={{ source }}'; 
-                {% else %}
-                window.location.href='/';
-                {% endif %}
-            };
-        }
-
-        function formatTime(t) {
-            let m = Math.floor(t/60), s = Math.floor(t%60);
-            return m + ":" + (s<10?'0':'') + s;
-        }
-    </script>
+    function formatTime(t) {
+        let m = Math.floor(t/60), s = Math.floor(t%60);
+        return m + ":" + (s<10?'0':'') + s;
+    }
+</script>
 </body>
 </html>
