@@ -66,11 +66,11 @@ def player(song_id):
     conn = get_db_connection()
     cur = conn.cursor()
     
-    # Humne columns fix kar diye hain: 0:id, 1:title, 2:youtube_id, 3:category, 4:audio_url
+    # Humne fixed columns select kiye hain: 0:id, 1:title, 2:youtube_id, 3:category, 4:audio_url
+    # Chahe DB mein 100 column hon, is query se humein hamesha ye 5 hi milenge isi order mein.
     cur.execute("SELECT id, title, youtube_id, category, audio_url FROM songs WHERE id = %s", (song_id,))
     song = cur.fetchone()
     
-    # Next song ka ID nikalne ke liye
     cur.execute("SELECT id FROM songs WHERE id > %s LIMIT 1", (song_id,))
     next_song = cur.fetchone()
     next_id = next_song[0] if next_song else None
@@ -80,9 +80,7 @@ def player(song_id):
     
     if song:
         return render_template('player.html', song=song, next_id=next_id)
-    
     return "Song not found", 404
-
 
 # --- API ROUTES (NEON DATABASE) ---
 
