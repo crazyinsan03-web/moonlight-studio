@@ -63,24 +63,24 @@ def login_page():
 
 @app.route('/player/<int:song_id>')
 def player(song_id):
-    try:
-        conn = get_db_connection()
-        cur = conn.cursor()
-        cur.execute('SELECT * FROM songs WHERE id = %s', (song_id,))
-        song = cur.fetchone()
-        
-        cur.execute('SELECT id FROM songs WHERE id > %s ORDER BY id ASC LIMIT 1', (song_id,))
-        next_song = cur.fetchone()
-        next_id = next_song[0] if next_song else None
-        
-        cur.close()
-        conn.close()
-        
-        if song:
-            return render_template('player.html', song=song, next_id=next_id)
-        return "Bhai, gaana nahi mila!", 404
-    except Exception as e:
-        return f"Error: {e}"
+    conn = get_db_connection()
+    cur = conn.cursor()
+    
+    # Humne columns ko fix kar diya: 0:id, 1:title, 2:youtube_id, 3:category, 4:audio_url
+    cur.execute("SELECT id, title, youtube_id, category, audio_url FROM songs WHERE id = %s", (song_id,))
+    song = cur.fetchone()
+    
+    # Next song ke liye logic
+    cur.execute("SELECT id FROM songs WHERE id > %s LIMIT 1", (song_id,))
+    next_song = cur.fetchone()
+    next_id = next_song[0] if next_song else None
+    
+    cur.close()
+    conn.close()
+    
+    if song:
+        return render_template('player.html', song=song, next_id=next_id)
+    return "Song not found", 404"
 
 # --- API ROUTES (NEON DATABASE) ---
 
