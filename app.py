@@ -14,32 +14,28 @@ def get_db_connection():
 
 @app.route('/admin', methods=['GET', 'POST'])
 def admin():
-    try:
-        conn = get_db_connection()
-        cur = conn.cursor()
+    conn = get_db_connection()
+    cur = conn.cursor()
+    if request.method == 'POST':
+        title = request.form.get('title')
+        yt_id = request.form.get('link')  # Manual YouTube ID
+        audio_url = request.form.get('audio_url')  # Manual Archive Link
+        category = request.form.get('category')
+        
+        cur.execute('''
+            INSERT INTO songs (title, youtube_id, yt_id, audio_url, category, is_mp3) 
+            VALUES (%s, %s, %s, %s, %s, %s)
+        ''', (title, yt_id, yt_id, audio_url, category, True))
+        conn.commit()
+        return "<script>alert('Bhai, Gaana Add Ho Gaya!'); window.location.href='/admin';</script>"
 
-        if request.method == 'POST':
-            # Naya gaana add karne ka logic
-            title = request.form.get('title')
-            link = request.form.get('link')  # Ye YouTube ID hogi
-            audio_url = request.form.get('audio_url') # Archive.org ka MP3 link
-            category = request.form.get('category')
-            
-            cur.execute('''
-                INSERT INTO songs (title, youtube_id, audio_url, category, is_mp3) 
-                VALUES (%s, %s, %s, %s, %s)
-            ''', (title, link, audio_url, category, True))
-            conn.commit()
-            return "<script>alert('Gaana add ho gaya bhai!'); window.location.href='/admin';</script>"
+    cur.execute('SELECT * FROM songs ORDER BY id DESC')
+    songs = cur.fetchall()
+    cur.close()
+    conn.close()
+    return render_template('admin.html', songs=songs)
 
-        # Library dikhane ke liye
-        cur.execute('SELECT * FROM songs ORDER BY id DESC')
-        songs = cur.fetchall()
-        cur.close()
-        conn.close()
-        return render_template('admin.html', songs=songs)
-    except Exception as e:
-        return f"Admin Error: {e}"
+        
 
 
 @app.route('/')
