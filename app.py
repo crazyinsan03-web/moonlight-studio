@@ -49,27 +49,28 @@ def search():
             conn.close()
             return render_template('search_results.html', songs=db_results, source='db')
 
-        else:
-            # 2. Agar nahi mila toh YouTube "Research" mode
+     else:
+            # 2. YouTube "Research" mode
             videosSearch = VideosSearch(query, limit=5)
             yt_results = videosSearch.result()['result']
             
-            # Log Not Found: Taaki tu baad mein manually add kar sake (Research wala part)
+            # Log Not Found
             cur.execute("INSERT INTO search_logs (query_text, status) VALUES (%s, 'Not Found')", (query,))
             conn.commit()
             
             fallback_songs = []
             for video in yt_results:
-                fallback_songs.append({
-                    'id': video['id'], 
-                    'title': video['title'], 
-                    'youtube_id': video['id'], 
-                    'category': 'YouTube Global'
-                })
+                # IMPORTANT: Data ko List format mein dalo taaki template crash na ho
+                # [0]: ID, [1]: Title, [2]: YouTube_ID, [3]: Category
+                fallback_songs.append([
+                    video['id'], 
+                    video['title'], 
+                    video['id'], 
+                    'YouTube Global'
+                ])
             
             cur.close()
             conn.close()
-            # source='yt' bhej rahe hain taaki player pehchan sake
             return render_template('search_results.html', songs=fallback_songs, source='yt')
             
     except Exception as e:
