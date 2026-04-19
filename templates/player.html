@@ -12,42 +12,41 @@
     <div class="player-header">
         <button class="back-btn" onclick="window.location.href='/'"><i class="material-icons">expand_more</i></button>
         <div class="playing-from">
-            <p class="small-text">PLAYING FROM CATEGORY</p>
+            <p class="small-text">PLAYING FROM</p>
             <p class="cat-name">{{ song[3] }}</p>
         </div>
         <button class="more-options"><i class="material-icons">more_vert</i></button>
     </div>
 
-    
-<div class="player-main-content">
-    {% if source == 'db' %}
-        <audio id="mainAudio" src="{{ song[4] }}" preload="auto" playsinline autoplay></audio>
-        <img src="https://img.youtube.com/vi/{{ song[2] }}/maxresdefault.jpg" class="player-album-art">
-    {% else %}
-        <div class="youtube-container" style="width:100%; aspect-ratio:16/9; border-radius:15px; overflow:hidden;">
-            <iframe width="100%" height="100%" src="https://www.youtube.com/embed/{{ song[2] }}?autoplay=1" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
-        </div>
-    
-        <p style="color:#00ffcc; font-size:12px; margin-top:10px;">Playing from YouTube Global</p>
-    {% endif %}
-</div>
-        <div class="visualizer-container" style="display:flex; flex-direction:column; align-items:center;">
-            <img src="https://img.youtube.com/vi/{{ song[2] }}/maxresdefault.jpg" class="player-album-art" style="width:80%; border-radius:20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
-            <div class="playing-waves" id="waveContainer" style="margin-top:20px;">
-                <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+    <div class="player-main-content">
+        {% if source == 'db' %}
+            <audio id="mainAudio" src="{{ song[4] }}" preload="auto" playsinline autoplay></audio>
+            <div class="visualizer-container">
+                <img src="https://img.youtube.com/vi/{{ song[2] }}/maxresdefault.jpg" class="player-album-art">
+                <div class="playing-waves" id="waveContainer">
+                    <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+                </div>
             </div>
-        </div>
+        {% else %}
+            <div class="yt-wrapper" style="width:100%; aspect-ratio:16/9; border-radius:20px; overflow:hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+                <iframe width="100%" height="100%" 
+                    src="https://www.youtube.com/embed/{{ song[2] }}?autoplay=1&modestbranding=1" 
+                    frameborder="0" allow="autoplay; encrypted-media" allowfullscreen>
+                </iframe>
+            </div>
+            <p style="color:#00ffcc; font-size:12px; margin-top:15px; text-align:center;">YouTube Stream Mode</p>
+        {% endif %}
 
         <div class="song-meta">
             <div class="title-wrap">
                 <h2 class="player-title">{{ song[1] }}</h2>
                 <p class="artist-name">Moonlight Original</p>
             </div>
-            <button class="heart-btn" id="likeBtn"><i class="material-icons">favorite_border</i></button>
+            <button class="heart-btn"><i class="material-icons">favorite_border</i></button>
         </div>
 
         <div class="progress-container">
-            <div class="time-bar" id="progressBar" style="cursor:pointer;"><div class="progress-fill" id="seekProgress"></div></div>
+            <div class="time-bar" id="progressBar"><div class="progress-fill" id="seekProgress"></div></div>
             <div class="time-stamps"><span id="currentTime">0:00</span><span id="totalDuration">0:00</span></div>
         </div>
 
@@ -66,37 +65,51 @@
         const waves = document.getElementById('waveContainer');
 
         function togglePlay() {
+            // FIX: Agar YouTube mode hai toh audio tag nahi hoga, error se bachne ke liye ye check:
+            if (!audio) {
+                alert("Use YouTube controls to Play/Pause");
+                return;
+            }
             if (audio.paused) {
                 audio.play();
                 playIcon.innerText = "pause";
-                waves.classList.remove('paused-waves');
+                if(waves) waves.classList.remove('paused-waves');
             } else {
                 audio.pause();
                 playIcon.innerText = "play_arrow";
-                waves.classList.add('paused-waves');
+                if(waves) waves.classList.add('paused-waves');
             }
         }
 
-        audio.ontimeupdate = () => {
-            if (audio.duration) {
-                const perc = (audio.currentTime / audio.duration) * 100;
-                document.getElementById('seekProgress').style.width = perc + "%";
-                document.getElementById('currentTime').innerText = formatTime(audio.currentTime);
-                document.getElementById('totalDuration').innerText = formatTime(audio.duration);
-            }
-        };
+        // Audio controls sirf tabhi chalenge jab MP3 mode ho
+        if (audio) {
+            audio.ontimeupdate = () => {
+                if (audio.duration) {
+                    const perc = (audio.currentTime / audio.duration) * 100;
+                    document.getElementById('seekProgress').style.width = perc + "%";
+                    document.getElementById('currentTime').innerText = formatTime(audio.currentTime);
+                    document.getElementById('totalDuration').innerText = formatTime(audio.duration);
+                }
+            };
 
-        document.getElementById('progressBar').onclick = (e) => {
-            const rect = document.getElementById('progressBar').getBoundingClientRect();
-            audio.currentTime = ((e.clientX - rect.left) / rect.width) * audio.duration;
-        };
+            document.getElementById('progressBar').onclick = (e) => {
+                const rect = document.getElementById('progressBar').getBoundingClientRect();
+                audio.currentTime = ((e.clientX - rect.left) / rect.width) * audio.duration;
+            };
+
+            audio.onended = () => { 
+                {% if next_id %}
+                window.location.href='/player/{{ next_id }}?source={{ source }}'; 
+                {% else %}
+                window.location.href='/';
+                {% endif %}
+            };
+        }
 
         function formatTime(t) {
             let m = Math.floor(t/60), s = Math.floor(t%60);
             return m + ":" + (s<10?'0':'') + s;
         }
-
-        audio.onended = () => { window.location.href='/player/{{ next_id }}'; };
     </script>
 </body>
 </html>
