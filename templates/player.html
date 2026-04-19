@@ -21,8 +21,13 @@
     </div>
 
     <div class="player-main-content">
-        <div class="visualizer-container">
-            <div class="playing-waves" id="waveContainer">
+        <audio id="mainAudio" src="{{ song[5] }}" preload="auto" playsinline autoplay></audio>
+
+        <div class="visualizer-container" style="text-align: center; margin-top: 20px;">
+            <img src="https://img.youtube.com/vi/{{ song[2] }}/maxresdefault.jpg" 
+                 style="width: 85%; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);" id="albumArt">
+            
+            <div class="playing-waves" id="waveContainer" style="margin-top: 30px;">
                 <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
             </div>
         </div>
@@ -38,10 +43,10 @@
         </div>
 
         <div class="progress-container">
-            <div class="time-bar" id="progressBar" style="cursor: pointer;">
-                <div class="progress-fill" id="seekProgress"></div>
+            <div class="time-bar" id="progressBar" style="cursor: pointer; background: rgba(255,255,255,0.1); height: 5px; border-radius: 10px; position: relative;">
+                <div class="progress-fill" id="seekProgress" style="width: 0%; height: 100%; background: #fff; border-radius: 10px; transition: width 0.1s linear;"></div>
             </div>
-            <div class="time-stamps">
+            <div class="time-stamps" style="display: flex; justify-content: space-between; margin-top: 8px; font-size: 12px; color: #b3b3b3;">
                 <span id="currentTime">0:00</span>
                 <span id="totalDuration">0:00</span>
             </div>
@@ -51,8 +56,8 @@
             <button class="ctrl-btn"><i class="material-icons">shuffle</i></button>
             <button class="ctrl-btn" onclick="window.history.back()"><i class="material-icons">skip_previous</i></button>
             
-            <button class="play-pause-circle" onclick="togglePlay()">
-                <i class="material-icons" id="playIcon">pause</i>
+            <button class="play-pause-circle" onclick="togglePlay()" style="background: #fff; color: #000; border-radius: 50%; width: 65px; height: 65px; display: flex; align-items: center; justify-content: center; border: none;">
+                <i class="material-icons" id="playIcon" style="font-size: 40px;">pause</i>
             </button>
 
             <button class="ctrl-btn" onclick="goToNext()"><i class="material-icons">skip_next</i></button>
@@ -60,106 +65,45 @@
         </div>
     </div>
 
-    <div id="player"></div>
+    <script>
+    const audio = document.getElementById('mainAudio');
+    const playIcon = document.getElementById('playIcon');
+    const waves = document.getElementById('waveContainer');
+    const seekProgress = document.getElementById('seekProgress');
 
-   <script>
-    // 1. YouTube API Load karo
-    var tag = document.createElement('script');
-    tag.src = "https://www.youtube.com/iframe_api";
-    var firstScriptTag = document.getElementsByTagName('script')[0];
-    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-
-    var player;
-    
-    // 2. Player Setup (Speed Hacks ke saath)
-    function onYouTubeIframeAPIReady() {
-        player = new YT.Player('player', {
-            height: '0',
-            width: '0',
-            videoId: '{{ song[2] }}',
-            playerVars: { 
-                'autoplay': 1, 
-                'controls': 0, 
-                'modestbranding': 1, 
-                'playsinline': 1,
-                'rel': 0,
-                'vq': 'tiny' // <--- Sabse low quality taaki buffering na ho
-            },
-            events: {
-                'onReady': onPlayerReady,
-                'onStateChange': onPlayerStateChange
-            }
-        });
-    }
-
-    // 3. Player Ready hone par quality lock karo
-    function onPlayerReady(event) {
-        event.target.setPlaybackQuality('small'); 
-        updateProgress();
-    }
-
-    // 4. Like Function (Neon Glow + Database Entry)
-    function sendLike(songId) {
-        let btn = document.getElementById('likeBtn');
-        let icon = document.getElementById('heartIcon');
-        
-        if (!btn.classList.contains('active')) {
-            btn.classList.add('active');
-            icon.innerText = "favorite"; 
-            
-            fetch(`/like/${songId}`, { method: 'POST' })
-            .then(response => response.json())
-            .then(data => {
-                if(data.success) console.log("Moonlight: Song Liked! 🌙");
-            });
-        } else {
-            btn.classList.remove('active');
-            icon.innerText = "favorite_border";
-        }
-    }
-
-    // 5. Play/Pause Logic (Waves control ke saath)
+    // 1. Play/Pause Functionality
     function togglePlay() {
-        let icon = document.getElementById('playIcon');
-        let waves = document.getElementById('waveContainer');
-        
-        if (player.getPlayerState() == 1) { // Playing
-            player.pauseVideo();
-            icon.innerText = "play_arrow";
-            waves.classList.add('paused-waves');
-        } else {
-            player.playVideo();
-            icon.innerText = "pause";
+        if (audio.paused) {
+            audio.play();
+            playIcon.innerText = "pause";
             waves.classList.remove('paused-waves');
+        } else {
+            audio.pause();
+            playIcon.innerText = "play_arrow";
+            waves.classList.add('paused-waves');
         }
     }
 
-    // 6. Progress Bar (Seeking/Age-piche karna)
-    document.getElementById('progressBar').addEventListener('click', function(e) {
-        if (player && player.getDuration) {
-            let rect = this.getBoundingClientRect();
-            let x = e.clientX - rect.left; 
-            let width = rect.width; 
-            let perc = x / width; 
-            let duration = player.getDuration();
-            player.seekTo(duration * perc, true); 
+    // 2. Time Update & Progress Bar
+    audio.ontimeupdate = () => {
+        if (audio.duration) {
+            const perc = (audio.currentTime / audio.duration) * 100;
+            seekProgress.style.width = perc + "%";
+            document.getElementById('currentTime').innerText = formatTime(audio.currentTime);
+            document.getElementById('totalDuration').innerText = formatTime(audio.duration);
         }
+    };
+
+    // 3. Click to Seek (Aage-Piche)
+    document.getElementById('progressBar').addEventListener('click', function(e) {
+        const rect = this.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const perc = x / rect.width;
+        audio.currentTime = perc * audio.duration;
     });
 
-    function updateProgress() {
-        setInterval(() => {
-            if (player && player.getCurrentTime) {
-                let curr = player.getCurrentTime();
-                let dur = player.getDuration();
-                if (dur > 0) {
-                    let perc = (curr / dur) * 100;
-                    document.getElementById('seekProgress').style.width = perc + "%";
-                    document.getElementById('currentTime').innerText = formatTime(curr);
-                    document.getElementById('totalDuration').innerText = formatTime(dur);
-                }
-            }
-        }, 500);
-    }
+    // 4. Auto Next
+    audio.onended = () => { goToNext(); };
 
     function formatTime(time) {
         let min = Math.floor(time / 60);
@@ -175,46 +119,49 @@
         {% endif %}
     }
 
-    function onPlayerStateChange(event) {
-        let icon = document.getElementById('playIcon');
-        let waves = document.getElementById('waveContainer');
+    // 5. Like Feature
+    function sendLike(songId) {
+        let btn = document.getElementById('likeBtn');
+        let icon = document.getElementById('heartIcon');
         
-        if (event.data == YT.PlayerState.PLAYING) {
-            icon.innerText = "pause";
-            waves.classList.remove('paused-waves');
-        } else if (event.data == YT.PlayerState.PAUSED) {
-            icon.innerText = "play_arrow";
-            waves.classList.add('paused-waves');
-        } else if (event.data == YT.PlayerState.ENDED) {
-            goToNext();
+        if (!btn.classList.contains('active')) {
+            btn.classList.add('active');
+            icon.innerText = "favorite";
+            icon.style.color = "#ff4081";
+            
+            fetch(`/like/${songId}`, { method: 'POST' })
+            .then(response => response.json())
+            .then(data => { if(data.success) console.log("Moonlight: Liked! 🌙"); });
+        } else {
+            btn.classList.remove('active');
+            icon.innerText = "favorite_border";
+            icon.style.color = "#fff";
         }
     }
 
+    // 6. Background Control (Media Session API)
+    if ('mediaSession' in navigator) {
+        navigator.mediaSession.metadata = new MediaMetadata({
+            title: '{{ song[1] }}',
+            artist: 'Moonlight Studio',
+            artwork: [{ src: 'https://img.youtube.com/vi/{{ song[2] }}/mqdefault.jpg', sizes: '512x512', type: 'image/jpg' }]
+        });
+        navigator.mediaSession.setActionHandler('play', () => { audio.play(); togglePlay(); });
+        navigator.mediaSession.setActionHandler('pause', () => { audio.pause(); togglePlay(); });
+    }
 
-// Player load hote hi gaana history mein save karo
-document.addEventListener('DOMContentLoaded', () => {
-    const songId = "{{ song[0] }}";
-    const songTitle = "{{ song[1] }}";
-    const songThumb = "https://img.youtube.com/vi/{{ song[2] }}/mqdefault.jpg";
+    // 7. Recent History Logic
+    document.addEventListener('DOMContentLoaded', () => {
+        const songId = "{{ song[0] }}";
+        const songTitle = "{{ song[1] }}";
+        const songThumb = "https://img.youtube.com/vi/{{ song[2] }}/mqdefault.jpg";
 
-    let recent = JSON.parse(localStorage.getItem('moonlight_recent') || "[]");
-
-    // Purani entry hatao agar wahi gaana dobara suna hai
-    recent = recent.filter(s => s.id !== songId);
-
-    // Naya gaana top par daalo
-    recent.unshift({ id: songId, title: songTitle, thumb: songThumb });
-
-    // Sirf top 10 gaane rakho
-    if (recent.length > 10) recent.pop();
-
-    localStorage.setItem('moonlight_recent', JSON.stringify(recent));
-    console.log("Moonlight: History Updated! 🌙");
-});
-
-
-
-
-</script>
+        let recent = JSON.parse(localStorage.getItem('moonlight_recent') || "[]");
+        recent = recent.filter(s => s.id !== songId);
+        recent.unshift({ id: songId, title: songTitle, thumb: songThumb });
+        if (recent.length > 10) recent.pop();
+        localStorage.setItem('moonlight_recent', JSON.stringify(recent));
+    });
+    </script>
 </body>
 </html>
