@@ -36,19 +36,35 @@ def search():
     try:
         conn = get_db_connection()
         cur = conn.cursor()
-
-        # 1. Pehle Database (Neon) mein check karo
+        # Search in DB
         cur.execute("SELECT id, title, youtube_id, category, audio_url FROM songs WHERE title ILIKE %s", (f'%{query}%',))
         db_results = cur.fetchall()
 
         if db_results:
-            # Log Found: Agar mil gaya (Optional: search history ke liye)
-            cur.execute("INSERT INTO search_logs (query_text, status) VALUES (%s, 'Found') ON CONFLICT DO NOTHING", (query,))
-            conn.commit()
             cur.close()
             conn.close()
             return render_template('search_results.html', songs=db_results, source='db')
-
+        else: # <--- YE WALI LINE 52 HAI, ISKA SPACE CHECK KARO
+            # YouTube Search Fallback
+            videosSearch = VideosSearch(query, limit=5)
+            yt_results = videosSearch.result()['result']
+            
+            # Search Log
+            cur.execute("INSERT INTO search_logs (query_text, status) VALUES (%s, 'Not Found')", (query,))
+            conn.commit()
+            
+            fallback_songs = []
+            for v in yt_results:
+                # [0]: ID, [1]: Title, [2]: YouTube_ID, [3]: Category
+                fallback_songs.append([v['id'], v['title'], v['id'], 'YouTube Global'])
+            
+            cur.close()
+            conn.close()
+            return render_template('search_results.html', songs=fallback_songs, source='yt')
+            
+    except Exception as e:
+        print(f"Search error: {e}")
+        return redirect(url_for('index'))
      else:
             # 2. YouTube "Research" mode
             videosSearch = VideosSearch(query, limit=5)
