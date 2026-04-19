@@ -21,10 +21,13 @@
     
    
 </div>
-        <div class="search-pill">
-            <span class="search-icon">🔍</span>
-            <input type="text" id="searchInput" placeholder="What do you want to listen to?" onkeyup="filterSongs()">
-        </div>
+      <div class="search-pill">
+    <span class="search-icon">🔍</span>
+    <form action="/search" method="GET" style="flex:1;">
+        <input type="text" name="q" id="searchInput" placeholder="What do you want to listen to?" autocomplete="off">
+    </form>
+</div>
+    
     </div>
 
     <div class="filter-chips">
