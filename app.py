@@ -36,7 +36,8 @@ def search():
     try:
         conn = get_db_connection()
         cur = conn.cursor()
-        # Search in DB
+        
+        # 1. Pehle Database mein check karo
         cur.execute("SELECT id, title, youtube_id, category, audio_url FROM songs WHERE title ILIKE %s", (f'%{query}%',))
         db_results = cur.fetchall()
 
@@ -44,113 +45,79 @@ def search():
             cur.close()
             conn.close()
             return render_template('search_results.html', songs=db_results, source='db')
-        else: # <--- YE WALI LINE 52 HAI, ISKA SPACE CHECK KARO
-            # YouTube Search Fallback
+        
+        else:
+            # 2. Agar DB mein nahi hai, toh YouTube Search (Research Mode)
             videosSearch = VideosSearch(query, limit=5)
             yt_results = videosSearch.result()['result']
             
-            # Search Log
-            cur.execute("INSERT INTO search_logs (query_text, status) VALUES (%s, 'Not Found')", (query,))
-            conn.commit()
+            # Missing song ko log karo (search_logs table honi chahiye)
+            try:
+                cur.execute("INSERT INTO search_logs (query_text, status) VALUES (%s, 'Not Found')", (query,))
+                conn.commit()
+            except:
+                conn.rollback() # Agar table nahi hai toh crash na ho
             
             fallback_songs = []
             for v in yt_results:
-                # [0]: ID, [1]: Title, [2]: YouTube_ID, [3]: Category
+                # Format: [id, title, youtube_id, category]
+                # Template ke compatibility ke liye list format mein data
                 fallback_songs.append([v['id'], v['title'], v['id'], 'YouTube Global'])
             
             cur.close()
             conn.close()
             return render_template('search_results.html', songs=fallback_songs, source='yt')
-            
-    except Exception as e:
-        print(f"Search error: {e}")
-        return redirect(url_for('index'))
-     else:
-            # 2. YouTube "Research" mode
-            videosSearch = VideosSearch(query, limit=5)
-            yt_results = videosSearch.result()['result']
-            
-            # Log Not Found
-            cur.execute("INSERT INTO search_logs (query_text, status) VALUES (%s, 'Not Found')", (query,))
-            conn.commit()
-            
-            fallback_songs = []
-            for video in yt_results:
-                # IMPORTANT: Data ko List format mein dalo taaki template crash na ho
-                # [0]: ID, [1]: Title, [2]: YouTube_ID, [3]: Category
-                fallback_songs.append([
-                    video['id'], 
-                    video['title'], 
-                    video['id'], 
-                    'YouTube Global'
-                ])
-            
-            cur.close()
-            conn.close()
-            return render_template('search_results.html', songs=fallback_songs, source='yt')
-            
+
     except Exception as e:
         print(f"Search error: {e}")
         return redirect(url_for('index'))
 
 @app.route('/player/<string:song_id>')
 def player(song_id):
-    # source='db' matlab Archive MP3, source='yt' matlab YouTube Iframe
     source = request.args.get('source', 'db')
-    title_fallback = request.args.get('title', 'Moonlight Stream')
+    title_fb = request.args.get('title', 'Moonlight Stream') # YouTube fallback ke liye
     
     conn = get_db_connection()
     cur = conn.cursor()
-    
+
     if source == 'db':
-        # Database wala gaana: Fixed Order (id, title, yt_id, cat, audio_url)
+        # Database se gaana uthao
         cur.execute("SELECT id, title, youtube_id, category, audio_url FROM songs WHERE id = %s", (song_id,))
         song = cur.fetchone()
         
-        # Next song logic (sirf DB gaano ke liye)
+        # Next song logic
         cur.execute("SELECT id FROM songs WHERE id > %s LIMIT 1", (song_id,))
         next_res = cur.fetchone()
         next_id = next_res[0] if next_res else None
         
         cur.close()
         conn.close()
-        
-        if song:
-            return render_template('player.html', song=song, next_id=next_id, source='db')
+        return render_template('player.html', song=song, next_id=next_id, source='db')
+    
     else:
-        # YouTube mode: No DB needed, seedha ID use hogi
-        # Fake song object banaya taaki template crash na ho
-        song = [song_id, title_fallback, song_id, 'YouTube Global', '']
+        # YouTube mode: Dummy list banakar bhej rahe hain taaki template na phate
+        # Format: [id, title, youtube_id, category, audio_url]
+        song = [song_id, title_fb, song_id, 'YouTube Global', '']
         cur.close()
         conn.close()
         return render_template('player.html', song=song, next_id=None, source='yt')
 
-    return "Song not found", 404
+@app.route('/login-page')
+def login_page():
+    return render_template('login.html')
 
-@app.route('/admin', methods=['GET', 'POST'])
+@app.route('/recents')
+def recents():
+    return render_template('recents.html')
+
+@app.route('/admin')
 def admin():
     conn = get_db_connection()
     cur = conn.cursor()
-    if request.method == 'POST':
-        title = request.form.get('title')
-        yt_id = request.form.get('link')
-        audio_url = request.form.get('audio_url')
-        category = request.form.get('category')
-        
-        cur.execute('''
-            INSERT INTO songs (title, youtube_id, audio_url, category, is_mp3) 
-            VALUES (%s, %s, %s, %s, %s)
-        ''', (title, yt_id, audio_url, category, True))
-        conn.commit()
-        return "<script>alert('Bhai, Gaana Add Ho Gaya!'); window.location.href='/admin';</script>"
-
-    # Admin panel mein search logs bhi dikhao (Research wala feature)
-    cur.execute('SELECT query_text, status, search_count, last_searched FROM search_logs ORDER BY last_searched DESC LIMIT 20')
-    logs = cur.fetchall()
-
     cur.execute('SELECT * FROM songs ORDER BY id DESC')
     songs = cur.fetchall()
-    
+    cur.execute('SELECT * FROM search_logs ORDER BY last_searched DESC')
+    logs = cur.fetchall()
     cur.close()
     conn.close()
     return render_template('admin.html', songs=songs, logs=logs)
@@ -193,4 +160,6 @@ def login():
         return jsonify({"status": "error", "message": str(e)})
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    import os
+    port = int(os.environ.get('PORT', 10000))
+    app.run(host='0.0.0.0', port=port)
