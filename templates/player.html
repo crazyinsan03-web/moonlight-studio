@@ -6,11 +6,16 @@
     <title>{{ song[1] }} | Moonlight</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        .yt-container { width: 100%; aspect-ratio: 16/9; border-radius: 12px; overflow: hidden; margin-top: 20px; }
+        .yt-container iframe { width: 100%; height: 100%; border: none; }
+        .paused-waves { opacity: 0.3; }
+    </style>
 </head>
 <body class="player-body">
 
     <div class="player-header">
-        <button class="back-btn" onclick="window.location.href='/'"><i class="material-icons">expand_more</i></button>
+        <button class="back-btn" onclick="window.history.back()"><i class="material-icons">expand_more</i></button>
         <div class="playing-from">
             <p class="small-text">PLAYING FROM</p>
             <p class="cat-name">{{ song[3] }}</p>
@@ -21,90 +26,86 @@
     <div class="player-main-content">
         {% if source == 'db' %}
             <audio id="mainAudio" src="{{ song[4] }}" preload="auto" playsinline autoplay></audio>
-            
-                <div class="playing-waves" id="waveContainer">
-                    <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
-                </div>
-            </div>
+            <img src="https://img.youtube.com/vi/{{ song[2] }}/maxresdefault.jpg" class="player-album-art">
         {% else %}
-            <div class="yt-wrapper" style="width:100%; aspect-ratio:16/9; border-radius:20px; overflow:hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
-                <iframe width="100%" height="100%" 
-                    src="https://www.youtube.com/embed/{{ song[2] }}?autoplay=1&modestbranding=1" 
-                    frameborder="0" allow="autoplay; encrypted-media" allowfullscreen>
-                </iframe>
+            <div class="yt-container">
+                <iframe src="https://www.youtube.com/embed/{{ song[2] }}?autoplay=1&rel=0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
             </div>
-            <p style="color:#00ffcc; font-size:12px; margin-top:15px; text-align:center;">YouTube Stream Mode</p>
         {% endif %}
 
-        <div class="song-meta">
-            <div class="title-wrap">
-                <h2 class="player-title">{{ song[1] }}</h2>
-                <p class="artist-name">Moonlight Original</p>
+        <div class="song-details">
+            <h2 class="player-song-title">{{ song[1] }}</h2>
+            <p class="player-artist-name">Moonlight Global</p>
+        </div>
+
+        <div class="player-controls">
+            <div class="progress-container">
+                <div class="time-info">
+                    <span id="currentTime">0:00</span>
+                    <span id="totalDuration">0:00</span>
+                </div>
+                <div class="progress-bar" id="progressBar">
+                    <div class="progress-fill" id="seekProgress"></div>
+                </div>
             </div>
-            <button class="heart-btn"><i class="material-icons">favorite_border</i></button>
-        </div>
 
-        <div class="progress-container">
-            <div class="time-bar" id="progressBar"><div class="progress-fill" id="seekProgress"></div></div>
-            <div class="time-stamps"><span id="currentTime">0:00</span><span id="totalDuration">0:00</span></div>
-        </div>
-
-        <div class="main-controls">
-            <button class="ctrl-btn"><i class="material-icons">shuffle</i></button>
-            <button class="ctrl-btn" onclick="window.history.back()"><i class="material-icons">skip_previous</i></button>
-            <button class="play-pause-circle" onclick="togglePlay()"><i class="material-icons" id="playIcon">pause</i></button>
-            <button class="ctrl-btn" onclick="window.location.href='/player/{{ next_id }}'"><i class="material-icons">skip_next</i></button>
-            <button class="ctrl-btn"><i class="material-icons">repeat</i></button>
+            <div class="main-btns">
+                <i class="material-icons shuffle">shuffle</i>
+                <i class="material-icons prev" onclick="window.history.back()">skip_previous</i>
+                <div class="play-pause-circle" onclick="togglePlay()">
+                    <i class="material-icons" id="playIcon">{% if source == 'db' %}pause{% else %}play_arrow{% endif %}</i>
+                </div>
+                <i class="material-icons next" onclick="window.location.href='/player/{{ next_id }}?source={{ source }}'">skip_next</i>
+                <i class="material-icons repeat">repeat</i>
+            </div>
         </div>
     </div>
 
-   <script>
-    const audio = document.getElementById('mainAudio');
-    const playIcon = document.getElementById('playIcon');
-    const waves = document.getElementById('waveContainer');
+    <script>
+        const audio = document.getElementById('mainAudio');
+        const playIcon = document.getElementById('playIcon');
 
-    function togglePlay() {
-        // Fix: Pehle check karo ki audio element exist karta hai ya nahi
-        if (!audio) {
-            alert("YouTube Mode: Use Video Controls to Play/Pause");
-            return;
-        }
-        if (audio.paused) {
-            audio.play();
-            playIcon.innerText = "pause";
-            if(waves) waves.classList.remove('paused-waves');
-        } else {
-            audio.pause();
-            playIcon.innerText = "play_arrow";
-            if(waves) waves.classList.add('paused-waves');
-        }
-    }
-
-    // Saare audio events ko 'if (audio)' ke andar wrap karo
-    if (audio) {
-        audio.ontimeupdate = () => {
-            if (audio.duration) {
-                const perc = (audio.currentTime / audio.duration) * 100;
-                document.getElementById('seekProgress').style.width = perc + "%";
-                document.getElementById('currentTime').innerText = formatTime(audio.currentTime);
-                document.getElementById('totalDuration').innerText = formatTime(audio.duration);
+        function togglePlay() {
+            // YouTube mode mein audio element nahi hota
+            if (!audio) {
+                alert("YouTube Mode: Use Video Controls to Play/Pause");
+                return;
             }
-        };
 
-        document.getElementById('progressBar').onclick = (e) => {
-            const rect = document.getElementById('progressBar').getBoundingClientRect();
-            audio.currentTime = ((e.clientX - rect.left) / rect.width) * audio.duration;
-        };
+            if (audio.paused) {
+                audio.play();
+                playIcon.innerText = "pause";
+            } else {
+                audio.pause();
+                playIcon.innerText = "play_arrow";
+            }
+        }
 
-        audio.onended = () => { 
-            window.location.href='/player/{{ next_id }}?source={{ source }}'; 
-        };
-    }
+        // Saare audio events sirf tab chalenge jab audio element ho (Database Mode)
+        if (audio) {
+            audio.ontimeupdate = () => {
+                if (audio.duration) {
+                    const perc = (audio.currentTime / audio.duration) * 100;
+                    document.getElementById('seekProgress').style.width = perc + "%";
+                    document.getElementById('currentTime').innerText = formatTime(audio.currentTime);
+                    document.getElementById('totalDuration').innerText = formatTime(audio.duration);
+                }
+            };
 
-    function formatTime(t) {
-        let m = Math.floor(t/60), s = Math.floor(t%60);
-        return m + ":" + (s<10?'0':'') + s;
-    }
-</script>
+            document.getElementById('progressBar').onclick = (e) => {
+                const rect = document.getElementById('progressBar').getBoundingClientRect();
+                audio.currentTime = ((e.clientX - rect.left) / rect.width) * audio.duration;
+            };
+
+            audio.onended = () => { 
+                window.location.href='/player/{{ next_id }}?source={{ source }}'; 
+            };
+        }
+
+        function formatTime(t) {
+            let m = Math.floor(t/60), s = Math.floor(t%60);
+            return m + ":" + (s<10?'0':'') + s;
+        }
+    </script>
 </body>
 </html>
