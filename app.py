@@ -1,4 +1,8 @@
-from youtubesearchpython import VideosSearch
+from flask import Flask, render_template, request, redirect, url_for
+import psycopg2
+from youtubesearchpython import VideosSearch  # <--- Nayi Library
+
+# ... Tera purana get_db_connection wala code ...
 
 @app.route('/search')
 def search():
@@ -9,37 +13,35 @@ def search():
     conn = get_db_connection()
     cur = conn.cursor()
 
-    # 1. Pehle Database mein check karo
-    cur.execute("SELECT id, title, youtube_id, category, audio_url FROM songs WHERE title ILIKE %s", (f'%{query}%',))
+    # 1. Database mein dhoondo
+    cur.execute("SELECT id, title, youtube_id, category FROM songs WHERE title ILIKE %s", (f'%{query}%',))
     db_results = cur.fetchall()
 
-    if db_results:
-        # Log Found: Agar mil gaya
-        cur.execute("INSERT INTO search_logs (query_text, status) VALUES (%s, 'Found') ON CONFLICT DO NOTHING", (query,))
-        conn.commit()
-        return render_template('search_results.html', songs=db_results, source='db')
-
-    else:
-        # 2. Agar nahi mila toh YouTube par dhoondo
-        videosSearch = VideosSearch(query, limit = 5)
+    # 2. Agar DB mein nahi mila, toh YouTube se uthao
+    if not db_results:
+        videosSearch = VideosSearch(query, limit=5)
         yt_results = videosSearch.result()['result']
         
+        # Search Log: Yaad rakhne ke liye ki ye gaana missing hai
+        cur.execute("INSERT INTO search_logs (query_text, status) VALUES (%s, 'Not Found') ON CONFLICT DO NOTHING", (query,))
+        conn.commit()
+
         fallback_songs = []
-        for video in yt_results:
+        for v in yt_results:
             fallback_songs.append({
-                'id': video['id'], # YouTube string ID
-                'title': video['title'],
-                'youtube_id': video['id'],
+                'id': v['id'], 
+                'title': v['title'], 
+                'youtube_id': v['id'], 
                 'category': 'YouTube Global'
             })
-        
-        # Log Not Found: Taaki tu baad mein add kar sake
-        cur.execute("INSERT INTO search_logs (query_text, status) VALUES (%s, 'Not Found')", (query,))
-        conn.commit()
         
         cur.close()
         conn.close()
         return render_template('search_results.html', songs=fallback_songs, source='yt')
+
+    cur.close()
+    conn.close()
+    return render_template('search_results.html', songs=db_results, source='db')
 
 @app.route('/player/<string:song_id>')
 def player(song_id):
@@ -48,15 +50,17 @@ def player(song_id):
     cur = conn.cursor()
 
     if source == 'db':
-        # Database se MP3 wala logic
+        # Database wala gaana (MP3 Indexing fix ke saath)
         cur.execute("SELECT id, title, youtube_id, category, audio_url FROM songs WHERE id = %s", (song_id,))
         song = cur.fetchone()
         cur.close()
         conn.close()
         return render_template('player.html', song=song, source='db')
     else:
-        # YouTube Global wala logic (Yahan DB ki zaroorat nahi)
-        # Hum dummy song object banayenge search results se data leke
-        title = request.args.get('title', 'Unknown Title')
+        # YouTube wala gaana
+        title = request.args.get('title', 'YouTube Stream')
+        # Dummy list banayi hai taaki template crash na ho
         song = [song_id, title, song_id, 'YouTube Global', ''] 
+        cur.close()
+        conn.close()
         return render_template('player.html', song=song, source='yt')
