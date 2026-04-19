@@ -18,9 +18,19 @@
         <button class="more-options"><i class="material-icons">more_vert</i></button>
     </div>
 
-    <div class="player-main-content">
+    
+<div class="player-main-content">
+    {% if source == 'db' %}
         <audio id="mainAudio" src="{{ song[4] }}" preload="auto" playsinline autoplay></audio>
-
+        <img src="https://img.youtube.com/vi/{{ song[2] }}/maxresdefault.jpg" class="player-album-art">
+    {% else %}
+        <div class="youtube-container" style="width:100%; aspect-ratio:16/9; border-radius:15px; overflow:hidden;">
+            <iframe width="100%" height="100%" src="https://www.youtube.com/embed/{{ song[2] }}?autoplay=1" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+        </div>
+    
+        <p style="color:#00ffcc; font-size:12px; margin-top:10px;">Playing from YouTube Global</p>
+    {% endif %}
+</div>
         <div class="visualizer-container" style="display:flex; flex-direction:column; align-items:center;">
             <img src="https://img.youtube.com/vi/{{ song[2] }}/maxresdefault.jpg" class="player-album-art" style="width:80%; border-radius:20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
             <div class="playing-waves" id="waveContainer" style="margin-top:20px;">
