@@ -144,12 +144,13 @@
     }
 
     // 6. Background Control (Media Session API)
-    if ('mediaSession' in navigator) {
-        navigator.mediaSession.metadata = new MediaMetadata({
-            title: '{{ song[1] }}',
-            artist: 'Moonlight Studio',
-            artwork: [{ src: 'https://img.youtube.com/vi/{{ song[2] }}/mqdefault.jpg', sizes: '512x512', type: 'image/jpg' }]
-        });
+   if ('mediaSession' in navigator) {
+    navigator.mediaSession.metadata = new MediaMetadata({
+        title: '{{ song[1] }}',
+        artist: 'Moonlight Studio',
+        artwork: [{ src: 'https://img.youtube.com/vi/{{ song[2] }}/mqdefault.jpg', sizes: '512x512', type: 'image/jpg' }]
+    });
+}
         navigator.mediaSession.setActionHandler('play', () => { audio.play(); togglePlay(); });
         navigator.mediaSession.setActionHandler('pause', () => { audio.pause(); togglePlay(); });
     }
