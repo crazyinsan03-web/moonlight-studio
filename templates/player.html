@@ -87,7 +87,7 @@
         }
     }
 
-    // 2. Audio Visualizer Setup (Awaaz Fix)
+    // 2. Audio Visualizer Setup (Speaker Connection Fix)
     function initVisualizer() {
         if (!audioContext) {
             audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -105,24 +105,25 @@
 
     function renderFrame() {
         requestAnimationFrame(renderFrame);
+        if (!analyser) return;
         analyser.getByteFrequencyData(dataArray);
 
         let bass = dataArray[1]; 
         let scale = 1 + (bass / 600);
         let brightness = 15 + (bass / 10);
 
-        // Thumbnail Vibrate
+        // Thumbnail Vibrate Effect
         const art = document.querySelector('.main-album-art');
         if (art) {
             art.style.transform = `scale(${scale})`;
             art.style.boxShadow = `0 20px ${40 + bass/2}px rgba(65, 105, 225, 0.5)`;
         }
 
-        // Background Beats
+        // Dynamic Background Beats
         document.body.style.background = `radial-gradient(circle at center, hsl(225, 70%, ${brightness}%) 0%, #121212 100%)`;
     }
 
-    // 3. Sliding & Time Updates
+    // 3. Sliding & Progress Updates
     const moveProgress = (e) => {
         const rect = progressArea.getBoundingClientRect();
         let x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
@@ -158,13 +159,14 @@
         return m + ":" + (s < 10 ? '0' : '') + s;
     }
 
-    // Start everything on Play
+    // Audio Play hone par Visualizer shuru karein
     audio.onplay = () => {
         initVisualizer();
-        if (audioContext.state === 'suspended') audioContext.resume();
+        if (audioContext && audioContext.state === 'suspended') audioContext.resume();
         playIcon.innerText = "pause";
     };
 
+    // Auto Next Logic
     audio.onended = () => {
         if("{{ next_id }}" !== "None") window.location.href = '/player/{{ next_id }}';
     };
