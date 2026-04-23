@@ -63,21 +63,18 @@ def search():
     except Exception as e:
         print(f"Search error: {e}")
         return redirect(url_for('index'))
-
 @app.route('/player/<string:song_id>')
 def player(song_id):
     source = request.args.get('source', 'db')
-    title_fb = request.args.get('title', 'Moonlight Stream') # YouTube fallback ke liye
+    title_fb = request.args.get('title', 'Moonlight Stream')
     
     conn = get_db_connection()
     cur = conn.cursor()
 
     if source == 'db':
-        # Database se gaana uthao
         cur.execute("SELECT id, title, youtube_id, category, audio_url FROM songs WHERE id = %s", (song_id,))
         song = cur.fetchone()
         
-        # Next song logic
         cur.execute("SELECT id FROM songs WHERE id > %s LIMIT 1", (song_id,))
         next_res = cur.fetchone()
         next_id = next_res[0] if next_res else None
@@ -85,22 +82,12 @@ def player(song_id):
         cur.close()
         conn.close()
         return render_template('player.html', song=song, next_id=next_id, source='db')
-    
     else:
-        # YouTube mode: Dummy list banakar bhej rahe hain taaki template na phate
-        # Format: [id, title, youtube_id, category, audio_url]
+        # YouTube Global results ke liye
         song = [song_id, title_fb, song_id, 'YouTube Global', '']
         cur.close()
         conn.close()
         return render_template('player.html', song=song, next_id=None, source='yt')
-
-@app.route('/login-page')
-def login_page():
-    return render_template('login.html')
-
-@app.route('/recents')
-def recents():
-    return render_template('recents.html')
 
 @app.route('/admin')
 def admin():
