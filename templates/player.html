@@ -83,23 +83,65 @@
             }
         }
 
-        audio.ontimeupdate = () => {
-            const perc = (audio.currentTime / audio.duration) * 100;
-            progressBar.style.width = perc + "%";
-            document.getElementById('currTime').innerText = formatTime(audio.currentTime);
-            document.getElementById('durTime').innerText = formatTime(audio.duration);
-        };
+       const audio = document.getElementById('mainAudio');
+const progressBar = document.getElementById('progressBar');
+const progressArea = document.getElementById('progressArea');
+let isDragging = false;
 
-        function formatTime(t) {
-            let m = Math.floor(t/60), s = Math.floor(t%60);
-            return m + ":" + (s < 10 ? '0' : '') + s;
-        }
+// 1. Sliding Logic (Touch aur Mouse dono ke liye)
+const moveProgress = (e) => {
+    const rect = progressArea.getBoundingClientRect();
+    let x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+    let width = rect.width;
+    if (x < 0) x = 0;
+    if (x > width) x = width;
+    const percentage = (x / width) * 100;
+    progressBar.style.width = percentage + "%";
+    return (x / width) * audio.duration;
+};
 
-        audio.onended = () => {
-            if("{{ next_id }}" !== "None") {
-                window.location.href = '/player/{{ next_id }}';
-            }
-        };
+// Start Dragging
+const startDrag = (e) => { isDragging = true; };
+
+// While Dragging
+const duringDrag = (e) => {
+    if (isDragging) {
+        moveProgress(e);
+    }
+};
+
+// End Dragging
+const endDrag = (e) => {
+    if (isDragging) {
+        audio.currentTime = moveProgress(e);
+        isDragging = false;
+    }
+};
+
+// Events Attach Karo
+progressArea.addEventListener('mousedown', startDrag);
+progressArea.addEventListener('touchstart', startDrag);
+
+window.addEventListener('mousemove', duringDrag);
+window.addEventListener('touchmove', duringDrag);
+
+window.addEventListener('mouseup', endDrag);
+window.addEventListener('touchend', endDrag);
+
+// 2. Normal Time Update (Jab gaana chal raha ho)
+audio.ontimeupdate = () => {
+    if (!isDragging && audio.duration) {
+        const perc = (audio.currentTime / audio.duration) * 100;
+        progressBar.style.width = perc + "%";
+        document.getElementById('currTime').innerText = formatTime(audio.currentTime);
+        document.getElementById('durTime').innerText = formatTime(audio.duration);
+    }
+};
+
+function formatTime(t) {
+    let m = Math.floor(t/60), s = Math.floor(t%60);
+    return m + ":" + (s < 10 ? '0' : '') + s;
+}
     </script>
 </body>
 </html>
