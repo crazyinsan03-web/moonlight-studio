@@ -37,7 +37,7 @@ def search():
         conn = get_db_connection()
         cur = conn.cursor()
         
-        # 1. Database Check
+        # 1. Database mein search karo
         cur.execute("SELECT id, title, youtube_id, category, audio_url FROM songs WHERE title ILIKE %s", (f'%{query}%',))
         db_results = cur.fetchall()
 
@@ -47,46 +47,13 @@ def search():
             return render_template('search_results.html', songs=db_results, source='db')
         
         else:
-            # 2. YouTube Fallback
+            # 2. Agar DB mein nahi hai, toh YouTube Search
             videosSearch = VideosSearch(query, limit=5)
             yt_results = videosSearch.result()['result']
-            
-            # Search Log (Agar table hai toh)
-            try:
-                cur.execute("INSERT INTO search_logs (query_text, status) VALUES (%s, 'Not Found')", (query,))
-                conn.commit()
-            except:
-                conn.rollback()
-            
-            fallback_songs = []
-            for v in yt_results:
-                # [0]: ID, [1]: Title, [2]: YouTube_ID, [3]: Category
-                fallback_songs.append([v['id'], v['title'], v['id'], 'YouTube Global'])
-            
-            cur.close()
-            conn.close()
-            return render_template('search_results.html', songs=fallback_songs, source='yt')
-
-    except Exception as e:
-        print(f"Search error: {e}")
-        return redirect(url_for('index'))
-        
-        else:
-            # 2. Agar DB mein nahi hai, toh YouTube Search (Research Mode)
-            videosSearch = VideosSearch(query, limit=5)
-            yt_results = videosSearch.result()['result']
-            
-            # Missing song ko log karo (search_logs table honi chahiye)
-            try:
-                cur.execute("INSERT INTO search_logs (query_text, status) VALUES (%s, 'Not Found')", (query,))
-                conn.commit()
-            except:
-                conn.rollback() # Agar table nahi hai toh crash na ho
             
             fallback_songs = []
             for v in yt_results:
                 # Format: [id, title, youtube_id, category]
-                # Template ke compatibility ke liye list format mein data
                 fallback_songs.append([v['id'], v['title'], v['id'], 'YouTube Global'])
             
             cur.close()
