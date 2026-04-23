@@ -236,14 +236,22 @@ body {
     width: 100%;
 }
 
-.full-album-art {
+/* style.css mein is hisse ko dhoondo aur replace karo */
+
+.full-album-art { 
+    display: block !important; /* Wapas dikhane ke liye */
     width: 100%;
     aspect-ratio: 1;
     object-fit: cover;
     border-radius: 12px;
     box-shadow: 0 30px 60px rgba(0,0,0,0.5);
+    margin-bottom: 20px;
 }
 
+/* Waves visualizer ko chota kar do ya hata do agar nahi chahiye */
+.visualizer-container {
+    display: none; /* Agar pehle jaisa chahiye toh waves band kar do */
+}
 .player-title {
     font-size: 24px;
     font-weight: 800;
