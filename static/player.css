@@ -1,3 +1,18 @@
+
+
+
+* {
+    /* Isse woh blue box poori tarah khatam ho jayega */
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    outline: none;
+}
+
+
+
+
+
+
 :root {
     --royal-blue: #4169E1; /* Spotify Green ki jagah Royal Blue */
     --sp-black: #121212;
