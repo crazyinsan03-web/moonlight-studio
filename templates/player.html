@@ -125,6 +125,25 @@
     audio.onended = () => {
         if("{{ next_id }}" !== "None") window.location.href = '/player/{{ next_id }}';
     };
+
+
+if ('mediaSession' in navigator) {
+    navigator.mediaSession.metadata = new MediaMetadata({
+        title: "{{ song[1] }}",
+        artist: "Moonlight Studio",
+        album: "{{ song[3] }}",
+        artwork: [
+            { src: 'https://img.youtube.com/vi/{{ song[2] }}/maxresdefault.jpg', sizes: '512x512', type: 'image/jpg' }
+        ]
+    });
+
+    navigator.mediaSession.setActionHandler('play', () => { audio.play(); });
+    navigator.mediaSession.setActionHandler('pause', () => { audio.pause(); });
+    navigator.mediaSession.setActionHandler('previoustrack', () => { window.location.href='/player/{{ next_id }}'; });
+    navigator.mediaSession.setActionHandler('nexttrack', () => { window.location.href='/player/{{ next_id }}'; });
+}
+
+     
 </script>
 </body>
 </html>
