@@ -87,22 +87,23 @@
         }
     }
 
-    // 2. Audio Visualizer Setup (Speaker Connection Fix)
+   // 2. Audio Visualizer Setup (Speaker Connection Fix)
     function initVisualizer() {
         if (!audioContext) {
             audioContext = new (window.AudioContext || window.webkitAudioContext)();
             analyser = audioContext.createAnalyser();
+            
+            // Audio element ko source se jodo
             sourceNode = audioContext.createMediaElementSource(audio);
             
-            // Connection: Source -> Analyser -> Speakers (Destination)
-            sourceNode.connect(analyser);
-            analyser.connect(audioContext.destination); 
+            // --- YE SABSE IMPORTANT LINES HAIN ---
+            sourceNode.connect(analyser);      // Awaaz Analyser mein bhejo (Visuals ke liye)
+            analyser.connect(audioContext.destination); // Awaaz Speakers mein bhejo (Sunne ke liye)
             
             analyser.fftSize = 64;
             renderFrame();
         }
     }
-
     function renderFrame() {
         requestAnimationFrame(renderFrame);
         if (!analyser) return;
