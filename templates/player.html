@@ -135,6 +135,46 @@
             window.location.href = '/player/{{ next_id }}';
         }
     };
+
+
+const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+const sourceNode = audioContext.createMediaElementSource(audio);
+const analyser = audioContext.createAnalyser();
+sourceNode.connect(analyser);
+analyser.connect(audioContext.destination);
+
+analyser.fftSize = 64; // Chota size taaki fast reaction mile
+const bufferLength = analyser.frequencyBinCount;
+const dataArray = new Uint8Array(bufferLength);
+
+function animateAudioEffects() {
+    requestAnimationFrame(animateAudioEffects);
+    analyser.getByteFrequencyData(dataArray);
+
+    // 1. Bass pakadne ke liye (pehle 3-4 bins)
+    let bass = dataArray[1]; 
+    let scale = 1 + (bass / 500); // Thumbnail scaling factor
+    let brightness = 50 + (bass / 2); // Background brightness
+
+    // 2. Thumbnail Movement (Scale & Glow)
+    const art = document.querySelector('.main-album-art');
+    art.style.transform = `scale(${scale})`;
+    art.style.boxShadow = `0 0 ${bass/2}px var(--royal-glow)`;
+
+    // 3. Dynamic Background Color (Royal Blue ke shades mein)
+    const hue = 225; // Royal Blue Hue
+    const saturation = 50 + (bass / 5); // Beats par color deep hoga
+    document.body.style.background = `radial-gradient(circle, hsl(${hue}, ${saturation}%, ${brightness/3}%) 0%, #121212 100%)`;
+}
+
+// Jab pehli baar play ho tab audio context start karein
+audio.onplay = () => {
+    if (audioContext.state === 'suspended') {
+        audioContext.resume();
+    }
+    animateAudioEffects();
+};
+      
 </script>
 </body>
 </html>
