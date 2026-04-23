@@ -72,11 +72,8 @@
     const playIcon = document.getElementById('playIcon');
     const progressBar = document.getElementById('progressBar');
     const progressArea = document.getElementById('progressArea');
-    
-    let audioContext, analyser, sourceNode, isDragging = false;
-    const dataArray = new Uint8Array(32);
+    let isDragging = false;
 
-    // 1. Play/Pause Function
     function togglePlay() {
         if (audio.paused) {
             audio.play();
@@ -87,44 +84,7 @@
         }
     }
 
-   // 2. Audio Visualizer Setup (Speaker Connection Fix)
-    function initVisualizer() {
-        if (!audioContext) {
-            audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            analyser = audioContext.createAnalyser();
-            
-            // Audio element ko source se jodo
-            sourceNode = audioContext.createMediaElementSource(audio);
-            
-            // --- YE SABSE IMPORTANT LINES HAIN ---
-            sourceNode.connect(analyser);      // Awaaz Analyser mein bhejo (Visuals ke liye)
-            analyser.connect(audioContext.destination); // Awaaz Speakers mein bhejo (Sunne ke liye)
-            
-            analyser.fftSize = 64;
-            renderFrame();
-        }
-    }
-    function renderFrame() {
-        requestAnimationFrame(renderFrame);
-        if (!analyser) return;
-        analyser.getByteFrequencyData(dataArray);
-
-        let bass = dataArray[1]; 
-        let scale = 1 + (bass / 600);
-        let brightness = 15 + (bass / 10);
-
-        // Thumbnail Vibrate Effect
-        const art = document.querySelector('.main-album-art');
-        if (art) {
-            art.style.transform = `scale(${scale})`;
-            art.style.boxShadow = `0 20px ${40 + bass/2}px rgba(65, 105, 225, 0.5)`;
-        }
-
-        // Dynamic Background Beats
-        document.body.style.background = `radial-gradient(circle at center, hsl(225, 70%, ${brightness}%) 0%, #121212 100%)`;
-    }
-
-    // 3. Sliding & Progress Updates
+    // Progress Bar Logic
     const moveProgress = (e) => {
         const rect = progressArea.getBoundingClientRect();
         let x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
@@ -160,14 +120,8 @@
         return m + ":" + (s < 10 ? '0' : '') + s;
     }
 
-    // Audio Play hone par Visualizer shuru karein
-    audio.onplay = () => {
-        initVisualizer();
-        if (audioContext && audioContext.state === 'suspended') audioContext.resume();
-        playIcon.innerText = "pause";
-    };
-
-    // Auto Next Logic
+    audio.onplay = () => { playIcon.innerText = "pause"; };
+    audio.onpause = () => { playIcon.innerText = "play_arrow"; };
     audio.onended = () => {
         if("{{ next_id }}" !== "None") window.location.href = '/player/{{ next_id }}';
     };
