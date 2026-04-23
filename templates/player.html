@@ -11,52 +11,58 @@
 
     <div class="player-container">
         <div class="player-header">
-            <button class="nav-btn" onclick="window.location.href='/'">
+            <button class="icon-btn" onclick="window.location.href='/'">
                 <i class="material-icons">expand_more</i>
             </button>
             <div class="header-text">
-                <p class="now-playing">PLAYING FROM MASHUPS</p>
+                <p class="small-label">PLAYING FROM MASHUPS</p>
                 <p class="category-name">{{ song[3] }}</p>
             </div>
-            <button class="nav-btn">
+            <button class="icon-btn">
                 <i class="material-icons">more_vert</i>
             </button>
         </div>
 
-        <div class="album-art-section">
-            <img src="https://img.youtube.com/vi/{{ song[2] }}/maxresdefault.jpg" alt="Album Art" class="main-art">
+        <div class="album-art-wrapper">
+            <img src="https://img.youtube.com/vi/{{ song[2] }}/maxresdefault.jpg" alt="Song Art" class="spotify-art">
         </div>
 
-        <div class="song-meta">
-            <div class="text-group">
+        <div class="song-info-row">
+            <div class="song-details">
                 <h1 class="song-title">{{ song[1] }}</h1>
-                <p class="artist-name">Moonlight Original</p>
+                <p class="artist-name">Moonlight Studio</p>
             </div>
-            <button class="fav-btn">
-                <i class="material-icons">favorite_border</i>
+            <button class="icon-btn blue-icon">
+                <i class="material-icons">check_circle</i>
             </button>
         </div>
 
-        <div class="progress-section">
-            <div class="progress-bar-container" id="progressContainer">
-                <div class="progress-fill" id="progressFill"></div>
+        <div class="progress-container">
+            <div class="bar-bg" id="progressBar">
+                <div class="bar-fill" id="progressFill"></div>
+                <div class="bar-knob" id="progressKnob"></div>
             </div>
-            <div class="time-stamps">
+            <div class="time-info">
                 <span id="currentTime">0:00</span>
                 <span id="totalDuration">0:00</span>
             </div>
         </div>
 
-        <div class="main-controls">
-            <button class="ctrl-btn secondary"><i class="material-icons">shuffle</i></button>
-            <button class="ctrl-btn primary" onclick="window.location.href='/player/{{ next_id }}'"><i class="material-icons">skip_previous</i></button>
+        <div class="player-controls">
+            <button class="ctrl-btn"><i class="material-icons">shuffle</i></button>
+            <button class="ctrl-btn skip" onclick="window.location.href='/player/{{ next_id }}'"><i class="material-icons">skip_previous</i></button>
             
-            <button class="play-pause-btn" onclick="togglePlay()">
+            <button class="play-btn" onclick="togglePlay()">
                 <i class="material-icons" id="playIcon">pause</i>
             </button>
 
-            <button class="ctrl-btn primary" onclick="window.location.href='/player/{{ next_id }}'"><i class="material-icons">skip_next</i></button>
-            <button class="ctrl-btn secondary"><i class="material-icons">repeat</i></button>
+            <button class="ctrl-btn skip" onclick="window.location.href='/player/{{ next_id }}'"><i class="material-icons">skip_next</i></button>
+            <button class="ctrl-btn"><i class="material-icons">repeat</i></button>
+        </div>
+
+        <div class="footer-icons">
+            <i class="material-icons blue-icon">important_devices</i>
+            <i class="material-icons">share</i>
         </div>
 
         <audio id="mainAudio" src="{{ song[4] }}" preload="auto" autoplay></audio>
@@ -66,7 +72,7 @@
         const audio = document.getElementById('mainAudio');
         const playIcon = document.getElementById('playIcon');
         const progressFill = document.getElementById('progressFill');
-        const progressContainer = document.getElementById('progressContainer');
+        const progressBar = document.getElementById('progressBar');
 
         function togglePlay() {
             if (audio.paused) {
@@ -83,12 +89,6 @@
             progressFill.style.width = perc + "%";
             document.getElementById('currentTime').innerText = formatTime(audio.currentTime);
             document.getElementById('totalDuration').innerText = formatTime(audio.duration);
-        };
-
-        progressContainer.onclick = (e) => {
-            const width = progressContainer.clientWidth;
-            const clickX = e.offsetX;
-            audio.currentTime = (clickX / width) * audio.duration;
         };
 
         function formatTime(t) {
