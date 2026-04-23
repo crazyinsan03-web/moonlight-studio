@@ -1,36 +1,30 @@
-
-
-
+/* 1. Global Reset & Tap Fix */
 * {
-    /* Isse woh blue box poori tarah khatam ho jayega */
-    -webkit-tap-highlight-color: transparent;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent; /* Blue box hataya */
     -webkit-touch-callout: none;
     outline: none;
 }
 
-
-
-
-
-
 :root {
-    --royal-blue: #4169E1; /* Spotify Green ki jagah Royal Blue */
+    --royal-blue: #4169E1; 
     --sp-black: #121212;
-    --sp-dark-grey: #181818;
     --sp-text-grey: #b3b3b3;
-    --royal-glow: rgba(65, 105, 225, 0.5);
+    --royal-glow: rgba(65, 105, 225, 0.6);
 }
 
-/* 1. Overall Body Setup */
+/* 2. Dynamic Body Background */
 body.player-body {
-    background: linear-gradient(to bottom, #2c3e50 0%, var(--sp-black) 100%);
+    background: radial-gradient(circle at center, #1a2a44 0%, var(--sp-black) 100%);
     height: 100vh;
-    margin: 0;
     font-family: 'Circular Std', 'Segoe UI', sans-serif;
     color: white;
     display: flex;
     justify-content: center;
     overflow: hidden;
+    transition: background 0.2s ease-out; /* Beats ke sath color badlega */
 }
 
 .player-container {
@@ -40,159 +34,116 @@ body.player-body {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    animation: fadeIn 0.8s ease-out;
 }
 
-/* 2. Top Navigation */
-.top-nav {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding-top: 10px;
-}
-.header-info { text-align: center; }
-.label { display: block; font-size: 10px; letter-spacing: 1.5px; color: var(--sp-text-grey); }
-.cat-title { font-size: 13px; font-weight: bold; }
-
-/* 3. Album Art - Spotify Rounded Look */
+/* 3. Album Art - Visualizer Vibration Ready */
 .art-section {
     width: 100%;
     aspect-ratio: 1/1;
     margin: 20px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
+
 .main-album-art {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    border-radius: 8px;
-    box-shadow: 0 15px 50px rgba(0,0,0,0.8);
+    border-radius: 12px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+    /* JS Visualizer ke liye smooth transition */
+    transition: transform 0.05s ease-out, box-shadow 0.05s ease-out;
+    will-change: transform, box-shadow;
 }
 
-/* 4. Song Info Area */
-.song-meta-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-}
-.title-text { font-size: 22px; font-weight: 800; margin: 0; letter-spacing: -0.5px; }
-.artist-text { font-size: 16px; color: var(--sp-text-grey); margin: 5px 0 0 0; }
-.blue-accent { color: var(--royal-blue) !important; }
-
-/* 5. Progress Bar - The Blue Magic */
-.playback-seek { margin-bottom: 25px; }
-.progress-track {
-    width: 100%;
-    height: 4px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 2px;
-    position: relative;
-}
-.progress-bar {
-    height: 100%;
-    width: 0%; /* JS se control hoga */
-    background: var(--royal-blue);
-    border-radius: 2px;
-    box-shadow: 0 0 15px var(--royal-glow);
-}
-.time-labels {
-    display: flex;
-    justify-content: space-between;
-    font-size: 12px;
-    color: var(--sp-text-grey);
-    margin-top: 10px;
-}
-
-/* 6. Main Controls - Spotify Layout */
-.player-controls {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 30px;
-}
-.main-play-btn {
-    width: 65px;
-    height: 65px;
-    background: white;
-    border-radius: 50%;
-    border: none;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    cursor: pointer;
-    transition: transform 0.2s ease;
-}
-.main-play-btn:active { transform: scale(0.9); }
-.main-play-btn i { color: black; font-size: 40px; }
-
-.btn-skip { background: none; border: none; color: white; cursor: pointer; }
-.btn-skip i { font-size: 38px; }
-.btn-small { background: none; border: none; color: var(--sp-text-grey); cursor: pointer; }
-.btn-small i { font-size: 22px; }
-
-/* 7. Footer Icons */
-.bottom-icons {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    color: var(--sp-text-grey);
-    padding-bottom: 10px;
-}
-
-/* Button & Icon Styling */
-.icon-btn { background: none; border: none; color: white; cursor: pointer; }
-
-/* Animation for Smooth Entry */
-.player-container {
-    animation: fadeIn 0.5s ease-in;
-}
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-
-/* Progress area ko thoda bada touch target do taaki sliding asaan ho */
+/* 4. Progress Bar & Sliding Logic */
 .playback-seek {
-    padding: 10px 0;
+    padding: 15px 0; /* Touch area bada kiya */
     cursor: pointer;
 }
 
 .progress-track {
     height: 4px;
     background: rgba(255, 255, 255, 0.1);
-    border-radius: 2px;
+    border-radius: 4px;
     position: relative;
-    transition: height 0.2s;
+    transition: height 0.2s ease;
 }
 
-/* Jab user touch kare toh bar thodi moti ho jaye */
 .playback-seek:active .progress-track {
-    height: 6px;
+    height: 6px; /* Sliding ke waqt bar moti hogi */
 }
 
 .progress-bar {
     height: 100%;
     width: 0%;
     background: var(--royal-blue);
-    border-radius: 2px;
+    border-radius: 4px;
     position: relative;
+    box-shadow: 0 0 15px var(--royal-glow);
 }
 
-/* Spotify jaisa chota circle (knob) jo sliding ke waqt dikheगा */
+/* Spotify Style White Knob */
 .progress-bar::after {
     content: '';
     position: absolute;
-    right: -5px;
+    right: -6px;
     top: 50%;
     transform: translateY(-50%);
     width: 12px;
     height: 12px;
     background: white;
     border-radius: 50%;
-    display: none; /* Normal waqt hidden */
-    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+    opacity: 0;
+    transition: opacity 0.2s;
 }
 
 .playback-seek:active .progress-bar::after {
-    display: block; /* Drag karte waqt visible */
+    opacity: 1; /* Drag karte waqt dot dikhega */
 }
+
+/* 5. Controls & Buttons */
+.player-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.main-play-btn {
+    width: 68px;
+    height: 68px;
+    background: white;
+    border-radius: 50%;
+    border: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    transition: transform 0.1s ease;
+}
+
+.main-play-btn:active { transform: scale(0.9); }
+.main-play-btn i { color: black; font-size: 42px; }
+
+.btn-skip { background: none; border: none; color: white; transition: 0.2s; }
+.btn-skip:active { color: var(--royal-blue); transform: scale(0.9); }
+
+.blue-accent { color: var(--royal-blue) !important; }
+
+/* 6. Animations */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(15px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.header-info { text-align: center; }
+.label { display: block; font-size: 10px; letter-spacing: 1.5px; color: var(--sp-text-grey); }
+.cat-title { font-size: 13px; font-weight: bold; }
+.top-nav { display: flex; justify-content: space-between; align-items: center; }
+.icon-btn { background: none; border: none; color: white; }
+.time-labels { display: flex; justify-content: space-between; font-size: 12px; color: var(--sp-text-grey); margin-top: 10px; }
+.bottom-icons { display: flex; justify-content: space-between; color: var(--sp-text-grey); padding-bottom: 10px; }
