@@ -1,3 +1,15 @@
+
+
+* {
+    /* Isse woh blue box poori tarah khatam ho jayega */
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    outline: none;
+}
+
+
+
+
 :root {
     --sp-green: #1DB954;
     --sp-black: #121212;
