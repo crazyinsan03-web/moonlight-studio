@@ -67,12 +67,14 @@
         <audio id="mainAudio" src="{{ song[4] }}" preload="auto" autoplay></audio>
     </div>
 
-  <script>
+ <script>
     const audio = document.getElementById('mainAudio');
     const playIcon = document.getElementById('playIcon');
     const progressBar = document.getElementById('progressBar');
     const progressArea = document.getElementById('progressArea');
-    let isDragging = false;
+    
+    let audioContext, analyser, sourceNode, isDragging = false;
+    const dataArray = new Uint8Array(32);
 
     // 1. Play/Pause Function
     function togglePlay() {
@@ -85,36 +87,63 @@
         }
     }
 
-    // 2. Sliding Logic (Touch aur Mouse dono ke liye)
+    // 2. Audio Visualizer Setup (Awaaz Fix)
+    function initVisualizer() {
+        if (!audioContext) {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            analyser = audioContext.createAnalyser();
+            sourceNode = audioContext.createMediaElementSource(audio);
+            
+            // Connection: Source -> Analyser -> Speakers (Destination)
+            sourceNode.connect(analyser);
+            analyser.connect(audioContext.destination); 
+            
+            analyser.fftSize = 64;
+            renderFrame();
+        }
+    }
+
+    function renderFrame() {
+        requestAnimationFrame(renderFrame);
+        analyser.getByteFrequencyData(dataArray);
+
+        let bass = dataArray[1]; 
+        let scale = 1 + (bass / 600);
+        let brightness = 15 + (bass / 10);
+
+        // Thumbnail Vibrate
+        const art = document.querySelector('.main-album-art');
+        if (art) {
+            art.style.transform = `scale(${scale})`;
+            art.style.boxShadow = `0 20px ${40 + bass/2}px rgba(65, 105, 225, 0.5)`;
+        }
+
+        // Background Beats
+        document.body.style.background = `radial-gradient(circle at center, hsl(225, 70%, ${brightness}%) 0%, #121212 100%)`;
+    }
+
+    // 3. Sliding & Time Updates
     const moveProgress = (e) => {
         const rect = progressArea.getBoundingClientRect();
         let x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
         let width = rect.width;
-        if (x < 0) x = 0;
-        if (x > width) x = width;
+        if (x < 0) x = 0; if (x > width) x = width;
         const percentage = (x / width) * 100;
         progressBar.style.width = percentage + "%";
         return (x / width) * audio.duration;
     };
 
-    const startDrag = (e) => { isDragging = true; };
-    const duringDrag = (e) => { if (isDragging) moveProgress(e); };
-    const endDrag = (e) => {
-        if (isDragging) {
-            audio.currentTime = moveProgress(e);
-            isDragging = false;
-        }
-    };
+    progressArea.addEventListener('mousedown', () => isDragging = true);
+    progressArea.addEventListener('touchstart', () => isDragging = true);
+    window.addEventListener('mousemove', (e) => { if (isDragging) moveProgress(e); });
+    window.addEventListener('touchmove', (e) => { if (isDragging) moveProgress(e); });
+    window.addEventListener('mouseup', (e) => { 
+        if (isDragging) { audio.currentTime = moveProgress(e); isDragging = false; }
+    });
+    window.addEventListener('touchend', (e) => {
+        if (isDragging) { audio.currentTime = moveProgress(e); isDragging = false; }
+    });
 
-    // Events Attach Karo
-    progressArea.addEventListener('mousedown', startDrag);
-    progressArea.addEventListener('touchstart', startDrag);
-    window.addEventListener('mousemove', duringDrag);
-    window.addEventListener('touchmove', duringDrag);
-    window.addEventListener('mouseup', endDrag);
-    window.addEventListener('touchend', endDrag);
-
-    // 3. Normal Time Update
     audio.ontimeupdate = () => {
         if (!isDragging && audio.duration) {
             const perc = (audio.currentTime / audio.duration) * 100;
@@ -128,107 +157,17 @@
         let m = Math.floor(t/60), s = Math.floor(t%60);
         return m + ":" + (s < 10 ? '0' : '') + s;
     }
-    
-    // Auto Next logic
-    audio.onended = () => {
-        if("{{ next_id }}" !== "None") {
-            window.location.href = '/player/{{ next_id }}';
-        }
+
+    // Start everything on Play
+    audio.onplay = () => {
+        initVisualizer();
+        if (audioContext.state === 'suspended') audioContext.resume();
+        playIcon.innerText = "pause";
     };
 
-
-// Audio Context aur Nodes setup
-// 1. Audio Visualizer Variables
-let audioContext;
-let analyser;
-let sourceNode;
-const dataArray = new Uint8Array(32);
-
-function initVisualizer() {
-    if (!audioContext) {
-        // Audio Context shuru karo
-        audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        analyser = audioContext.createAnalyser();
-        
-        // Audio element ko analyzer se jodo
-        sourceNode = audioContext.createMediaElementSource(audio);
-        
-        // --- YE HAI FIX ---
-        sourceNode.connect(analyser);
-        analyser.connect(audioContext.destination); // Speaker se connection joda
-        
-        analyser.fftSize = 64;
-        animateAudioEffects();
-    }
-}
-
-function animateAudioEffects() {
-    requestAnimationFrame(animateAudioEffects);
-    if (!analyser) return;
-    
-    analyser.getByteFrequencyData(dataArray);
-
-    let bass = dataArray[1]; 
-    let scale = 1 + (bass / 600); // Beats par halka vibrate
-    let brightness = 15 + (bass / 12); // Background blue glow intensity
-
-    const art = document.querySelector('.main-album-art');
-    if (art) {
-        art.style.transform = `scale(${scale})`;
-        art.style.boxShadow = `0 20px ${40 + bass/2}px rgba(65, 105, 225, 0.5)`;
-    }
-
-    // Dynamic Background Beats
-    document.body.style.background = `radial-gradient(circle at center, hsl(225, 70%, ${brightness}%) 0%, #121212 100%)`;
-}
-
-// 2. Play hone par Visualizer activate ho
-audio.onplay = () => {
-    initVisualizer();
-    if (audioContext && audioContext.state === 'suspended') {
-        audioContext.resume();
-    }
-};
-
-    // Dynamic Background Color
-    document.body.style.background = `radial-gradient(circle at center, hsl(225, 70%, ${brightness}%) 0%, #121212 100%)`;
-}
-
-// Jab Play dabayein tab awaaz aur visualizer dono shuru hon
-audio.onplay = () => {
-    initVisualizer();
-    if (audioContext && audioContext.state === 'suspended') {
-        audioContext.resume();
-    }
-};
-function animateAudioEffects() {
-    requestAnimationFrame(animateAudioEffects);
-    analyser.getByteFrequencyData(dataArray);
-
-    // 1. Bass pakadne ke liye (pehle 3-4 bins)
-    let bass = dataArray[1]; 
-    let scale = 1 + (bass / 500); // Thumbnail scaling factor
-    let brightness = 50 + (bass / 2); // Background brightness
-
-    // 2. Thumbnail Movement (Scale & Glow)
-    const art = document.querySelector('.main-album-art');
-    art.style.transform = `scale(${scale})`;
-    art.style.boxShadow = `0 0 ${bass/2}px var(--royal-glow)`;
-
-    // 3. Dynamic Background Color (Royal Blue ke shades mein)
-    const hue = 225; // Royal Blue Hue
-    const saturation = 50 + (bass / 5); // Beats par color deep hoga
-    document.body.style.background = `radial-gradient(circle, hsl(${hue}, ${saturation}%, ${brightness/3}%) 0%, #121212 100%)`;
-}
-
-// Jab pehli baar play ho tab audio context start karein
-audio.onplay = () => {
-    if (audioContext.state === 'suspended') {
-        audioContext.resume();
-    }
-    animateAudioEffects();
-};
-      
+    audio.onended = () => {
+        if("{{ next_id }}" !== "None") window.location.href = '/player/{{ next_id }}';
+    };
 </script>
 </body>
 </html>
