@@ -134,3 +134,50 @@ body.player-body {
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
 }
+
+
+/* Progress area ko thoda bada touch target do taaki sliding asaan ho */
+.playback-seek {
+    padding: 10px 0;
+    cursor: pointer;
+}
+
+.progress-track {
+    height: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 2px;
+    position: relative;
+    transition: height 0.2s;
+}
+
+/* Jab user touch kare toh bar thodi moti ho jaye */
+.playback-seek:active .progress-track {
+    height: 6px;
+}
+
+.progress-bar {
+    height: 100%;
+    width: 0%;
+    background: var(--royal-blue);
+    border-radius: 2px;
+    position: relative;
+}
+
+/* Spotify jaisa chota circle (knob) jo sliding ke waqt dikheगा */
+.progress-bar::after {
+    content: '';
+    position: absolute;
+    right: -5px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 12px;
+    height: 12px;
+    background: white;
+    border-radius: 50%;
+    display: none; /* Normal waqt hidden */
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+}
+
+.playback-seek:active .progress-bar::after {
+    display: block; /* Drag karte waqt visible */
+}
