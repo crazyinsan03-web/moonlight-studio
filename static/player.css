@@ -147,3 +147,36 @@ body.player-body {
 .icon-btn { background: none; border: none; color: white; }
 .time-labels { display: flex; justify-content: space-between; font-size: 12px; color: var(--sp-text-grey); margin-top: 10px; }
 .bottom-icons { display: flex; justify-content: space-between; color: var(--sp-text-grey); padding-bottom: 10px; }
+
+
+
+/* Thumbnail ke peeche Royal Blue Glow ka jaadu */
+.main-album-art {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 12px;
+    /* Static shadow ki jagah animation use karenge */
+    animation: royalGlowPulse 4s ease-in-out infinite;
+    transition: transform 0.3s ease;
+}
+
+@keyframes royalGlowPulse {
+    0% { 
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8), 0 0 20px rgba(65, 105, 225, 0.2);
+        transform: scale(1);
+    }
+    50% { 
+        box-shadow: 0 15px 60px rgba(0, 0, 0, 0.6), 0 0 50px rgba(65, 105, 225, 0.6);
+        transform: scale(1.02); /* Halka sa zoom effect */
+    }
+    100% { 
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8), 0 0 20px rgba(65, 105, 225, 0.2);
+        transform: scale(1);
+    }
+}
+
+/* Background ko static Royal Blue gradient de dete hain jo mast dikhega */
+body.player-body {
+    background: radial-gradient(circle at center, #1a2a44 0%, #121212 100%) !important;
+}
