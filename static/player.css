@@ -3,10 +3,10 @@
     --sp-black: #121212;
     --sp-dark-grey: #181818;
     --sp-text-grey: #b3b3b3;
-    --royal-glow: rgba(65, 105, 225, 0.4);
+    --royal-glow: rgba(65, 105, 225, 0.5);
 }
 
-/* 1. Player Body - Spotify Gradient Look */
+/* 1. Overall Body Setup */
 body.player-body {
     background: linear-gradient(to bottom, #2c3e50 0%, var(--sp-black) 100%);
     height: 100vh;
@@ -21,78 +21,82 @@ body.player-body {
 .player-container {
     width: 100%;
     max-width: 420px;
-    padding: 30px;
+    padding: 20px 30px;
     display: flex;
     flex-direction: column;
+    justify-content: space-between;
 }
 
-/* 2. Album Art - Mast Round Corners & Shadow */
-.album-art-wrapper {
+/* 2. Top Navigation */
+.top-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 10px;
+}
+.header-info { text-align: center; }
+.label { display: block; font-size: 10px; letter-spacing: 1.5px; color: var(--sp-text-grey); }
+.cat-title { font-size: 13px; font-weight: bold; }
+
+/* 3. Album Art - Spotify Rounded Look */
+.art-section {
     width: 100%;
     aspect-ratio: 1/1;
-    margin: 40px 0;
-    animation: fadeInUp 0.8s ease-out;
+    margin: 20px 0;
 }
-
-.spotify-art {
+.main-album-art {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    border-radius: 12px;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.7);
-    transition: transform 0.3s ease;
+    border-radius: 8px;
+    box-shadow: 0 15px 50px rgba(0,0,0,0.8);
 }
 
-.spotify-art:hover {
-    transform: scale(1.02);
+/* 4. Song Info Area */
+.song-meta-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
 }
+.title-text { font-size: 22px; font-weight: 800; margin: 0; letter-spacing: -0.5px; }
+.artist-text { font-size: 16px; color: var(--sp-text-grey); margin: 5px 0 0 0; }
+.blue-accent { color: var(--royal-blue) !important; }
 
-/* 3. Song Info - Clean & Sharp */
-.song-details h1 {
-    font-size: 24px;
-    font-weight: 800;
-    margin-bottom: 8px;
-    letter-spacing: -0.5px;
-}
-
-.artist-name {
-    color: var(--sp-text-grey);
-    font-size: 16px;
-    font-weight: 500;
-}
-
-/* 4. Progress Bar - Royal Blue Jaadu */
-.progress-container {
-    margin: 30px 0;
-}
-
-.bar-bg {
+/* 5. Progress Bar - The Blue Magic */
+.playback-seek { margin-bottom: 25px; }
+.progress-track {
     width: 100%;
     height: 4px;
     background: rgba(255, 255, 255, 0.1);
     border-radius: 2px;
     position: relative;
 }
-
-.bar-fill {
+.progress-bar {
     height: 100%;
-    width: 0%; /* JS se update hoga */
+    width: 0%; /* JS se control hoga */
     background: var(--royal-blue);
     border-radius: 2px;
-    box-shadow: 0 0 10px var(--royal-glow); /* Blue Glow */
+    box-shadow: 0 0 15px var(--royal-glow);
+}
+.time-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--sp-text-grey);
+    margin-top: 10px;
 }
 
-/* 5. Controls - Spotify Premium Style */
+/* 6. Main Controls - Spotify Layout */
 .player-controls {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-top: 20px;
+    margin-bottom: 30px;
 }
-
-.play-btn {
-    width: 68px;
-    height: 68px;
+.main-play-btn {
+    width: 65px;
+    height: 65px;
     background: white;
     border-radius: 50%;
     border: none;
@@ -100,37 +104,33 @@ body.player-body {
     justify-content: center;
     align-items: center;
     cursor: pointer;
-    transition: transform 0.2s;
+    transition: transform 0.2s ease;
+}
+.main-play-btn:active { transform: scale(0.9); }
+.main-play-btn i { color: black; font-size: 40px; }
+
+.btn-skip { background: none; border: none; color: white; cursor: pointer; }
+.btn-skip i { font-size: 38px; }
+.btn-small { background: none; border: none; color: var(--sp-text-grey); cursor: pointer; }
+.btn-small i { font-size: 22px; }
+
+/* 7. Footer Icons */
+.bottom-icons {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: var(--sp-text-grey);
+    padding-bottom: 10px;
 }
 
-.play-btn:active {
-    transform: scale(0.9);
-}
+/* Button & Icon Styling */
+.icon-btn { background: none; border: none; color: white; cursor: pointer; }
 
-.play-btn i {
-    color: black;
-    font-size: 38px;
+/* Animation for Smooth Entry */
+.player-container {
+    animation: fadeIn 0.5s ease-in;
 }
-
-.ctrl-btn {
-    background: none;
-    border: none;
-    color: white;
-    cursor: pointer;
-    opacity: 0.8;
-}
-
-.ctrl-btn:hover {
-    opacity: 1;
-    color: var(--royal-blue);
-}
-
-.blue-accent {
-    color: var(--royal-blue) !important;
-}
-
-/* Animations */
-@keyframes fadeInUp {
-    from { opacity: 0; transform: translateY(20px); }
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
 }
