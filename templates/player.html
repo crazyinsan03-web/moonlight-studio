@@ -138,29 +138,29 @@
 
 
 // Audio Context aur Nodes setup
+// 1. Audio Visualizer Variables
 let audioContext;
 let analyser;
 let sourceNode;
+const dataArray = new Uint8Array(32);
 
 function initVisualizer() {
     if (!audioContext) {
+        // Audio Context shuru karo
         audioContext = new (window.AudioContext || window.webkitAudioContext)();
         analyser = audioContext.createAnalyser();
         
-        // Sabse important step: Audio element ko source se jodo
+        // Audio element ko analyzer se jodo
         sourceNode = audioContext.createMediaElementSource(audio);
         
-        // Connections: Source -> Analyser -> Speakers (destination)
+        // --- YE HAI FIX ---
         sourceNode.connect(analyser);
-        analyser.connect(audioContext.destination); // Ye line awaaz wapas laayegi
+        analyser.connect(audioContext.destination); // Speaker se connection joda
         
         analyser.fftSize = 64;
         animateAudioEffects();
     }
 }
-
-const bufferLength = 32; // analyser.frequencyBinCount
-const dataArray = new Uint8Array(32);
 
 function animateAudioEffects() {
     requestAnimationFrame(animateAudioEffects);
@@ -169,14 +169,26 @@ function animateAudioEffects() {
     analyser.getByteFrequencyData(dataArray);
 
     let bass = dataArray[1]; 
-    let scale = 1 + (bass / 600); // Scale thoda kam kiya smoothness ke liye
-    let brightness = 15 + (bass / 10); // Background ke liye light intensity
+    let scale = 1 + (bass / 600); // Beats par halka vibrate
+    let brightness = 15 + (bass / 12); // Background blue glow intensity
 
     const art = document.querySelector('.main-album-art');
     if (art) {
         art.style.transform = `scale(${scale})`;
         art.style.boxShadow = `0 20px ${40 + bass/2}px rgba(65, 105, 225, 0.5)`;
     }
+
+    // Dynamic Background Beats
+    document.body.style.background = `radial-gradient(circle at center, hsl(225, 70%, ${brightness}%) 0%, #121212 100%)`;
+}
+
+// 2. Play hone par Visualizer activate ho
+audio.onplay = () => {
+    initVisualizer();
+    if (audioContext && audioContext.state === 'suspended') {
+        audioContext.resume();
+    }
+};
 
     // Dynamic Background Color
     document.body.style.background = `radial-gradient(circle at center, hsl(225, 70%, ${brightness}%) 0%, #121212 100%)`;
