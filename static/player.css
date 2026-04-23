@@ -1,1 +1,105 @@
+:root {
+    --accent: #00d2ff;
+    --bg-dark: #0a0a0a;
+}
 
+body.player-body {
+    background: linear-gradient(to bottom, #1a1a1a, var(--bg-dark));
+    height: 100vh;
+    margin: 0;
+    color: white;
+    font-family: 'Segoe UI', sans-serif;
+    display: flex;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.player-container {
+    width: 100%;
+    max-width: 450px;
+    padding: 25px;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Header */
+.player-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 40px;
+}
+.header-text { text-align: center; }
+.now-playing { font-size: 10px; letter-spacing: 2px; color: #888; margin-bottom: 4px; }
+.category-name { font-weight: bold; font-size: 14px; }
+.nav-btn { background: none; border: none; color: white; cursor: pointer; }
+
+/* Album Art */
+.album-art-section {
+    width: 100%;
+    aspect-ratio: 1;
+    margin-bottom: 50px;
+}
+.main-art {
+    width: 100%;
+    height: 100%;
+    border-radius: 20px;
+    object-fit: cover;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+}
+
+/* Song Meta */
+.song-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+.song-title { font-size: 24px; margin: 0; }
+.artist-name { color: var(--accent); margin: 5px 0 0 0; }
+.fav-btn { background: none; border: none; color: white; }
+
+/* Progress Bar */
+.progress-bar-container {
+    background: rgba(255,255,255,0.1);
+    height: 5px;
+    border-radius: 10px;
+    width: 100%;
+    cursor: pointer;
+}
+.progress-fill {
+    background: var(--accent);
+    height: 100%;
+    width: 0%;
+    border-radius: 10px;
+}
+.time-stamps {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: #888;
+    margin-top: 10px;
+}
+
+/* Controls */
+.main-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 40px;
+}
+.play-pause-btn {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    background: white;
+    color: black;
+    border: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.play-pause-btn i { font-size: 40px; }
+.ctrl-btn { background: none; border: none; color: white; cursor: pointer; }
+.ctrl-btn.primary i { font-size: 35px; }
+.ctrl-btn.secondary i { font-size: 20px; color: #555; }
