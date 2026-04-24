@@ -27,21 +27,20 @@ def index():
 @app.route('/search')
 def search():
     query = request.args.get('q')
-    if not query:
-        return redirect(url_for('index'))
-    try:
-        conn = get_db_connection()
-        cur = conn.cursor()
-        # Sirf tere Database mein dhoondega
-        cur.execute("SELECT id, title, youtube_id, category, audio_url FROM songs WHERE title ILIKE %s", (f'%{query}%',))
-        db_results = cur.fetchall()
-        cur.close()
-        conn.close()
-        # Jo bhi mila (ya nahi mila), result page pe bhej dega
-        return render_template('search_results.html', songs=db_results, source='db')
-    except Exception as e:
-        print(f"Search error: {e}")
-        return redirect(url_for('index'))
+    if not query: return redirect(url_for('index'))
+    conn = get_db_connection()
+    cur = conn.cursor()
+    # Similarity logic: 0.2 ka matlab 20% match hone par bhi result dikhayega
+    cur.execute("""
+        SELECT id, title, youtube_id, category 
+        FROM songs 
+        WHERE similarity(title, %s) > 0.2 
+        ORDER BY similarity(title, %s) DESC LIMIT 15
+    """, (query, query))
+    songs = cur.fetchall()
+    cur.close()
+    conn.close()
+    return render_template('index.html', songs=songs, search_query=query)
 
 @app.route('/player/<string:song_id>')
 def player(song_id):
