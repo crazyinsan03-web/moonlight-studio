@@ -1,0 +1,152 @@
+
+<html>
+<head>
+    <title>Waiter Panel</title>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- AUTO REFRESH -->
+    
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body style="background:#f5f7fa;">
+
+<div class="container-fluid p-3">
+
+<div class="row">
+
+    <!-- LEFT: TABLES -->
+    <div class="col-12 col-md-4 col-lg-3">
+        <h4 class="mb-3">🍽 Tables</h4>
+
+        {% for t, data in tables.items() %}
+        <a href="/waiter?table={{t}}"
+           class="btn w-100 mb-2
+
+           {% if table_no == t %}
+           btn-dark
+           {% elif data.status == 'pending' %}
+           btn-secondary
+           {% elif data.status == 'preparing' %}
+           btn-danger
+           {% elif data.status == 'ready' %}
+           btn-success
+           {% endif %}
+           ">
+            Table {{t}}
+        </a>
+        {% endfor %}
+
+        <hr>
+
+        <!-- ADD TABLE -->
+        <form method="GET" action="/waiter">
+            <input name="table" class="form-control mb-2" placeholder="New Table No" required>
+            <button class="btn btn-primary w-100">➕ Add / Open Table</button>
+        </form>
+
+        <!-- BACK -->
+        <a href="/" class="btn btn-secondary w-100 mt-3">
+            ⬅ Back Home
+        </a>
+
+    </div>
+
+    <!-- RIGHT: ORDER PANEL -->
+    <div class="col-12 col-md-8 col-lg-9 mt-3 mt-md-0">
+
+        {% if table_no %}
+
+        <h4 class="mb-3">🪑 Table {{table_no}}</h4>
+
+        <!-- ADD ITEM (UPDATED 🔥) -->
+        <div class="card p-3 mb-3 shadow-sm border-0 rounded-4">
+            <form method="POST" action="/add_item/{{table_no}}">
+                <div class="row g-2">
+
+                    <!-- FOOD NAME -->
+                    <div class="col-5">
+                        <input type="text" name="item"
+                               class="form-control"
+                               placeholder="Paneer, Kofta..."
+                               required>
+                    </div>
+
+                    <!-- QTY -->
+                    <div class="col-3">
+                        <input type="number" name="qty"
+                               step="0.5" min="0.5"
+                               class="form-control"
+                               placeholder="Qty"
+                               required>
+                    </div>
+
+                    <!-- HALF/FULL -->
+                    <div class="col-2">
+                        <select name="type" class="form-control">
+                            <option value="Full">Full</option>
+                            <option value="Half">Half</option>
+                        </select>
+                    </div>
+
+                    <!-- ADD BTN -->
+                    <div class="col-2">
+                        <button class="btn btn-primary w-100">➕</button>
+                    </div>
+
+                </div>
+            </form>
+        </div>
+
+        <!-- ORDER LIST -->
+        <div class="row g-2">
+
+        {% for order in orders %}
+        <div class="col-12 col-md-6">
+            <div class="card p-3 shadow-sm border-0 rounded-4">
+
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <b>{{order.item}}</b><br>
+                        <small>Qty: {{order.qty}}</small>
+                    </div>
+
+                    <a href="/delete/{{order.id}}/{{table_no}}"
+                       class="btn btn-sm btn-danger">
+                       ✖
+                    </a>
+                </div>
+
+                <div class="mt-2">
+                    <span class="badge 
+                        {% if order.status == 'pending' %}bg-secondary
+                        {% elif order.status == 'preparing' %}bg-danger
+                        {% elif order.status == 'ready' %}bg-success
+                        {% endif %}
+                    ">
+                        {{order.status}}
+                    </span>
+                </div>
+
+            </div>
+        </div>
+        {% endfor %}
+
+        </div>
+
+        {% else %}
+        <div class="text-center mt-5">
+            <h5>Select or create a table</h5>
+        </div>
+        {% endif %}
+
+    </div>
+
+</div>
+
+</div>
+
+</body>
+</html>
